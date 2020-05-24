@@ -178,7 +178,13 @@
 (declare compile)
 
 (defn interpret
-  [{:keys [code ops stack]} & [trace?]]
+  [{:keys [code ops stack]}]
+  (comment
+    (println :interpreting)
+    (println :code)
+    (pp/pprint code)
+    (println :stack stack)
+    (println))
   (let [trace (atom [])]
     (try
       (loop [state {:code code
@@ -206,11 +212,7 @@
             ;; default
             (recur (update (eval-insn insn state)
                            :code rest)))
-          (do
-            (when trace?
-              (println "Trace:")
-              (pp/pprint (u/clean-trace @trace)))
-            state)))
+          state))
       (catch Throwable e
         (throw (ex-info (str "Error! " e)
                         {:trace (reverse (u/clean-trace @trace))}))))))
@@ -223,9 +225,8 @@
   (let [stack (:stack state)
         [x y] stack
         check (:check insn)
-        bool (:value insn)
         fallback (:fallback insn)]
-    (if (= bool (check x y))
+    (if (check x y)
       state
       (fallback stack))))
 
@@ -234,18 +235,20 @@
   (fn [state]
     (let [[x y] (-> trace first :stack)
           eq-fn (if (number? x) == =)
-          bool (eq-fn x y)]
+          bool (eq-fn x y)
+          check #(= bool (eq-fn %1 %2))]
       (eval-insn
        {:op :guard
-        :value bool
-        :check #(eq-fn %1 %2)
+        :check check
         :fallback
         (fn [stack]
-          (interpret {:ops (-> trace first :ops)
-                      :code (if bool
-                              (:else insn)
-                              (:then insn))
-                      :stack stack}))}
+          (assoc
+           (interpret {:ops (-> trace first :ops)
+                       :code (if bool
+                               (:else insn)
+                               (:then insn))
+                       :stack stack})
+           :interpreted? true))}
        state))))
 
 (defn compile-insn [insn trace]
@@ -275,10 +278,14 @@
                      primitive-trace)]
     (fn [stack]
       (reduce (fn [state [insn op-fn]]
-                #_(println insn)
-                #_(println (:stack state))
-                #_(println)
-                (op-fn state))
+                (comment
+                  (println insn)
+                  (println (:stack state))
+                  (println :interpreted? (:interpreted? state))
+                  (println))
+                (if (:interpreted? state)
+                  (reduced (dissoc state :interpreted?))
+                  (op-fn state)))
               {:stack stack
                :ops (-> trace last :ops)}
               ops))))
