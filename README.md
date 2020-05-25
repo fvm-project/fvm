@@ -35,6 +35,13 @@ Here's a program that calculates and prints `factorial(5)`:
 {:op :println}
 ```
 
+## Usage
+
+To run the example factorial program, do:
+```shell
+$ lein run test/fact.edn
+```
+
 ## Properties
 
 1. Custom ops (like `fact` above) are inlined and called at runtime

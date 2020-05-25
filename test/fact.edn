@@ -1,0 +1,26 @@
+{:op :requires
+ :value ["lib/std.edn"]}
+
+{:op :defop
+ :name :fact
+ :value [{:op :push
+          :value 0}
+         {:op :eq?
+          :then [{:op :pop}
+                 {:op :pop}
+                 {:op :push
+                  :value 1}]
+          :else [{:op :pop}
+                 {:op :dup}
+                 {:op :dec}
+                 {:op :fact}
+                 {:op :mul}]}]}
+
+{:op :push
+ :value "Enter a number: "}
+{:op :print}
+
+{:op :read}
+{:op :fact}
+
+{:op :println}

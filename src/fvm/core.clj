@@ -44,6 +44,7 @@
   [insn state]
   (let [[x & rest] (:stack state)]
     (print x)
+    (flush)
     (assoc state :stack rest)))
 
 
@@ -294,7 +295,5 @@
 ;; ====
 (defn -main
   [filename]
-  (-> filename
-      slurp
-      read-string
-      interpret))
+  (interpret {:code [{:op :requires
+                      :value [filename]}]}))
