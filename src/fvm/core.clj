@@ -313,4 +313,5 @@
                         :value [filename]}]})
     (catch Throwable e
       (println (.getMessage e))
-      (u/print-stack-trace e))))
+      (u/print-stack-trace e)
+      (System/exit 1))))
