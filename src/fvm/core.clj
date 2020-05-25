@@ -209,6 +209,7 @@
                   op-trace (drop start-idx @trace)]
               (recur (-> state
                          (update :code rest)
+                         (u/dissoc-in [:ops traced-op :trace-start-idx])
                          (assoc-in [:ops traced-op :compiled-trace]
                                    (compile op-trace)))))
 
@@ -284,7 +285,6 @@
                 (comment
                   (println insn)
                   (println (:stack state))
-                  (println :interpreted? (:interpreted? state))
                   (println))
                 (if (:interpreted? state)
                   (reduced state)
