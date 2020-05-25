@@ -308,5 +308,9 @@
 ;; ====
 (defn -main
   [filename]
-  (interpret {:code [{:op :requires
-                      :value [filename]}]}))
+  (try
+    (interpret {:code [{:op :requires
+                        :value [filename]}]})
+    (catch Throwable e
+      (println "Error: " (.getMessage e))
+      (pp/pprint (ex-data e)))))

@@ -18,10 +18,7 @@
 
 (defn clean-trace
   [trace]
-  (map (fn [state]
-         (-> state
-             (assoc :insn (-> state :code first))
-             (dissoc :code :ops)))
+  (map #(-> % :code first)
        trace))
 
 (defn ^Long curr-millis []
