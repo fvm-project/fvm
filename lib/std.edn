@@ -1,3 +1,5 @@
+;; Math
+;; ====
 {:op :defop
  :name :inc
  :value [{:op :push
@@ -17,6 +19,8 @@
           :value 0}
          {:op :sub}]}
 
+;; IO
+;; ==
 {:op :defop
  :name :println
  :value [{:op :print}
