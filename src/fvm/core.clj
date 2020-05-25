@@ -312,5 +312,5 @@
     (interpret {:code [{:op :requires
                         :value [filename]}]})
     (catch Throwable e
-      (println "Error: " (.getMessage e))
+      (println (.getMessage e))
       (u/print-stack-trace e))))

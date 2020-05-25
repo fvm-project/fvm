@@ -50,4 +50,4 @@
   (let [trace (-> ex ex-data :trace)]
     (println "Trace:")
     (doseq [insn trace]
-      (println insn))))
+      (println "\t" insn))))
