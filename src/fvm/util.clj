@@ -45,3 +45,9 @@
       (printf "Couldn't open '%s': %s\n" source (.getMessage e)))
     (catch RuntimeException e
       (printf "Error parsing edn file '%s': %s\n" source (.getMessage e)))))
+
+(defn print-stack-trace [ex]
+  (let [trace (-> ex ex-data :trace)]
+    (println "Trace:")
+    (doseq [insn trace]
+      (println insn))))

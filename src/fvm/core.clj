@@ -313,4 +313,4 @@
                         :value [filename]}]})
     (catch Throwable e
       (println "Error: " (.getMessage e))
-      (pp/pprint (ex-data e)))))
+      (u/print-stack-trace e))))
