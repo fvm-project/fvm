@@ -11,7 +11,7 @@
 (defn primitives []
   (-> eval-insn
       methods
-      (dissoc :default)))
+      (dissoc :default :guard)))
 
 (defn primitive? [op]
   (contains? (primitives)
@@ -20,7 +20,7 @@
 
 ;; IO
 ;; ==
-(defmethod eval-insn :io/print
+(defmethod eval-insn :print
   [insn state]
   (let [[x & rest] (:stack state)]
     (print x)
@@ -43,6 +43,12 @@
   (update state :stack
           (fn [stack]
             (cons (first stack) stack))))
+
+(defmethod eval-insn :swap
+  [insn state]
+  (update state :stack
+          (fn [[x y & rest]]
+            (cons y (cons x rest)))))
 
 
 ;; Arithmetic
@@ -83,18 +89,10 @@
     (assoc state :stack
            (cons res rest))))
 
-(defmethod eval-insn :neg
-  [insn state]
-  (let [stack (:stack state)
-        [x & rest] stack
-        res (- ^BigDecimal x)]
-    (assoc state :stack
-           (cons res rest))))
-
 
 ;; Logic
 ;; =====
-(defmethod eval-insn :eq
+(defmethod eval-insn :eq?
   [insn state]
   (let [[x y] (:stack state)
         {:keys [then else]} insn
@@ -112,10 +110,8 @@
 ;; ======
 (defmethod eval-insn :defop
   [insn state]
-  (let [[name value & rest] (:stack state)]
-    (-> state
-        (update :ops assoc-in [name :body] value)
-        (assoc :stack rest))))
+  (let [{:keys [name value]} insn]
+    (update state :ops assoc-in [name :body] value)))
 
 (defmethod eval-insn :default
   [insn state]
@@ -159,18 +155,25 @@
 ;; Stdlib
 ;; ======
 (def std
-  (concat
-   (u/defop :io/println
-     [{:op :io/print}
-      {:op :push
-       :value "\n"}
-      {:op :io/print}])
+  [{:op :defop
+    :name :dec
+    :value [{:op :push
+             :value 1}
+            {:op :swap}
+            {:op :sub}]}
 
-   (u/defop :dec
-     [{:op :push
-       :value 1}
-      {:op :sub}
-      {:op :neg}])))
+   {:op :defop
+    :name :neg
+    :value [{:op :push
+             :value 0}
+            {:op :sub}]}
+
+   {:op :defop
+    :name :println
+    :value [{:op :print}
+            {:op :push
+             :value "\n"}
+            {:op :print}]}])
 
 
 ;; Interpreter
@@ -253,7 +256,7 @@
 
 (defn compile-insn [insn trace]
   (case (:op insn)
-    :eq (make-eq-guard insn trace)
+    :eq? (make-eq-guard insn trace)
 
     ;; default
     (partial eval-insn insn)))
@@ -284,7 +287,7 @@
                   (println :interpreted? (:interpreted? state))
                   (println))
                 (if (:interpreted? state)
-                  (reduced (dissoc state :interpreted?))
+                  (reduced state)
                   (op-fn state)))
               {:stack stack
                :ops (-> trace last :ops)}
@@ -299,26 +302,3 @@
       slurp
       read-string
       interpret))
-
-
-;; Test
-;; ====
-(def factorial
-  (concat
-   std
-   [{:op :push
-     :value [{:op :push
-              :value 0}
-             {:op :eq
-              :then [{:op :pop}
-                     {:op :pop}
-                     {:op :push
-                      :value 1}]
-              :else [{:op :pop}
-                     {:op :dup}
-                     {:op :dec}
-                     {:op :fact}
-                     {:op :mul}]}]}   
-    {:op :push
-     :value :fact}
-    {:op :defop}]))

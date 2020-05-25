@@ -1,36 +1,50 @@
 # fvm
 
-FIXME: description
+**fvm** is an extensible stack-based self-optimizing VM.
 
-## Installation
+## Example
 
-Download from http://example.com/FIXME.
+Here's a program that calculates and prints `factorial(5)`:
+```clojure
+;; fact.edn
+{:op :require
+ :value ["std.edn"]}
 
-## Usage
+;; define factorial
+{:op :defop
+ :name :fact
+ :value [{:op :push
+          :value 0}
+         {:op :eq?
+          :then [{:op :pop}
+                 {:op :pop}
+                 {:op :push
+                  :value 1}]
+          :else [{:op :pop}
+                 {:op :dup}
+                 {:op :dec}
+                 {:op :fact}
+                 {:op :mul}]}]}
 
-FIXME: explanation
+;; call it
+{:op :push
+ :value 5}
+{:op :fact}
 
-    $ java -jar fvm-0.1.0-standalone.jar [args]
+;; print the result
+{:op :println}
+```
 
-## Options
+## Properties
 
-FIXME: listing of options this app accepts.
-
-## Examples
-
-...
-
-### Bugs
-
-...
-
-### Any Other Sections
-### That You Think
-### Might be Useful
+1. Custom ops (like `fact` above) are inlined and called at runtime
+2. No recursion limit - try running the factorial program for large values
+3. Code is data is code - anonymous ops can be stored and called
+4. Hot loops are traced and inlined at runtime
 
 ## License
 
-Copyright © 2020 FIXME
+Copyright © 2020 Divyansh Prakash
 
 This program and the accompanying materials are made available under the
 terms of the Eclipse Public License 2.0 which is available at

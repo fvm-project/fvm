@@ -4,19 +4,17 @@
 
 (def to-zero-script
   (concat fvm/std
-          [{:op :push
+          [{:op :defop
+            :name :to-zero
             :value [{:op :push
                      :value 0}
-                    {:op :eq
+                    {:op :eq?
                      :then [{:op :pop}
                             {:op :pop}]
                      :else [{:op :pop}
                             {:op :dup}
                             {:op :dec}
-                            {:op :to-zero}]}]}
-           {:op :push
-            :value :to-zero}
-           {:op :defop}]))
+                            {:op :to-zero}]}]}]))
 
 (deftest fvm-test
   (let [N 10
