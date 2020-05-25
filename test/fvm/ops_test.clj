@@ -43,7 +43,15 @@
   (is (= [:a :a] (apply-op :dup [:a])))
   (is (= [2 1] (apply-op :swap [1 2]))))
 
-(deftest defop-test
+(deftest macros-test
+  (is (= {:code []
+          :stack [1 1]
+          :ops {}}
+         (fvm/interpret {:code [{:op :push
+                                 :value [{:op :push
+                                          :value 1}
+                                         {:op :dup}]}
+                                {:op :call}]})))
   (is (= {:code []
           :stack nil
           :ops {:add-2 {:body [{:op :push

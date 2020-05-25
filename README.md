@@ -49,6 +49,7 @@ $ lein run test/fact.edn
 3. Code is data is code - anonymous ops can be stored and called
 4. Hot loops are traced and inlined at runtime
 5. Designed to be easily parsable and an easy compilation target
+6. Does not require a GC as all data is used on the stack
 
 ## License
 

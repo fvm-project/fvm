@@ -131,6 +131,17 @@
 
 ;; Macros
 ;; ======
+(defmethod eval-insn :call
+  [insn state]
+  (let [[body & rest] (:stack state)]
+    (-> state
+        (assoc :stack rest)
+        (update :code
+                (fn [[no-op & insns]]
+                  (vec (concat [no-op]
+                               body
+                               insns)))))))
+
 (defmethod eval-insn :defop
   [insn state]
   (let [{:keys [name value]} insn]
