@@ -6,11 +6,11 @@
 
 Here's a program that calculates and prints `factorial(5)`:
 ```clojure
-;; fact.edn
+;; import the standard library
 {:op :requires
  :value ["lib/std.edn"]}
 
-;; define factorial
+;; define a new opcode for factorial
 {:op :defop
  :name :fact
  :value [{:op :push
