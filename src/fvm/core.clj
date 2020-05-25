@@ -299,8 +299,7 @@
                 (if (:interpreted? state)
                   (reduced state)
                   (op-fn state)))
-              {:stack stack
-               :ops (-> trace last :ops)}
+              {:stack stack}
               ops))))
 
 
