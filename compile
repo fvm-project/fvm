@@ -1,0 +1,3 @@
+#! /bin/bash
+export PATH=$GRAALVM_HOME/bin:$PATH
+lein do clean, uberjar, native
