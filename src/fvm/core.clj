@@ -11,7 +11,9 @@
 (defn primitives []
   (-> eval-insn
       methods
-      (dissoc :default :guard)))
+      (dissoc :default
+              :requires
+              :guard)))
 
 (defn primitive? [op]
   (contains? (primitives)

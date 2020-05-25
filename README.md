@@ -48,6 +48,7 @@ $ lein run test/fact.edn
 2. No recursion limit - try running the factorial program for large values
 3. Code is data is code - anonymous ops can be stored and called
 4. Hot loops are traced and inlined at runtime
+5. Designed to be easily parsable and an easy compilation target
 
 ## License
 
