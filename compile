@@ -1,3 +1,4 @@
 #! /bin/bash
 export PATH=$GRAALVM_HOME/bin:$PATH
+gu install native-image
 lein do clean, uberjar, native

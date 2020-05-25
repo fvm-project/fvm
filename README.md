@@ -37,9 +37,27 @@ Here's a program that calculates and prints `factorial(5)`:
 
 ## Usage
 
+### JVM
+
 To run the example factorial program, do:
 ```shell
 $ lein run test/fact.edn
+```
+
+### Native
+
+#### Build from source
+
+Make sure you have GraalVM installed and `$GRAALVM_HOME` pointing to it, then do:
+```shell
+$ ./compile
+```
+
+#### Run
+
+Now you can do:
+```shell
+$ target/fvm test/fact.edn
 ```
 
 ## Properties
