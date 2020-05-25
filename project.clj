@@ -7,4 +7,5 @@
   :main ^:skip-aot fvm.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}}
-  :plugins [[lein-cloverage "1.1.2"]])
+  :plugins [[lein-eftest "0.5.9"]
+            [lein-cloverage "1.1.2"]])

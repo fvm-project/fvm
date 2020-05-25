@@ -17,6 +17,19 @@
   (contains? (primitives)
              op))
 
+;; Deps
+;; ====
+(defmethod eval-insn :requires
+  [insn state]
+  (let [libs (:value insn)
+        insns (vec (mapcat #(u/load-source %)
+                           libs))
+        [no-op & code] (:code state)]
+    (assoc state :code
+           (vec (concat [no-op]
+                        insns
+                        code)))))
+
 
 ;; IO
 ;; ==

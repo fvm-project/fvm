@@ -7,8 +7,8 @@
 Here's a program that calculates and prints `factorial(5)`:
 ```clojure
 ;; fact.edn
-{:op :require
- :value ["std.edn"]}
+{:op :requires
+ :value ["lib/std.edn"]}
 
 ;; define factorial
 {:op :defop

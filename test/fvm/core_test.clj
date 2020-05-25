@@ -1,21 +1,22 @@
 (ns fvm.core-test
   (:require [clojure.test :refer :all]
-            [fvm.core :as fvm]
-            [fvm.std :refer [std]]))
+            [fvm.core :as fvm]))
 
 (def to-zero-script
-  (concat std
-          [{:op :defop
-            :name :to-zero
-            :value [{:op :push
-                     :value 0}
-                    {:op :eq?
-                     :then [{:op :pop}
-                            {:op :pop}]
-                     :else [{:op :pop}
-                            {:op :dup}
-                            {:op :dec}
-                            {:op :to-zero}]}]}]))
+  [{:op :requires
+    :value ["lib/std.edn"]}
+
+   {:op :defop
+    :name :to-zero
+    :value [{:op :push
+             :value 0}
+            {:op :eq?
+             :then [{:op :pop}
+                    {:op :pop}]
+             :else [{:op :pop}
+                    {:op :dup}
+                    {:op :dec}
+                    {:op :to-zero}]}]}])
 
 (deftest interpreter-test
   (let [N 10

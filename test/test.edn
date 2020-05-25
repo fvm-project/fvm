@@ -1,0 +1,5 @@
+{:op :defop
+ :name :test/inc
+ :value [{:op :push
+          :value 1}
+         {:op :add}]}

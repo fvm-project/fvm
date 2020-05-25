@@ -59,3 +59,11 @@
   (is (= "hi"
          (with-out-str
            (apply-op :print ["hi"])))))
+
+(deftest requires-test
+  (is (= {:code (),
+          :ops {:test/inc {:body [{:op :push, :value 1}
+                                  {:op :add}]}},
+          :stack nil}
+         (fvm/interpret {:code [{:op :requires
+                                 :value ["test/test.edn"]}]}))))
