@@ -60,6 +60,12 @@ Now you can do:
 $ target/fvm test/fact.edn
 ```
 
+## Tests
+
+```shell
+$ lein eftest
+```
+
 ## Properties
 
 1. Custom ops (like `fact` above) are inlined and called at runtime
