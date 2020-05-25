@@ -80,8 +80,7 @@
   [insn state]
   (let [stack (:stack state)
         [x y & rest] stack
-        res (+' ^BigDecimal x
-                ^BigDecimal y)]
+        res (+' x y)]
     (assoc state :stack
            (cons res rest))))
 
@@ -89,8 +88,7 @@
   [insn state]
   (let [stack (:stack state)
         [x y & rest] stack
-        res (- ^BigDecimal x
-               ^BigDecimal y)]
+        res (- x y)]
     (assoc state :stack
            (cons res rest))))
 
@@ -98,8 +96,7 @@
   [insn state]
   (let [stack (:stack state)
         [x y & rest] stack
-        res (*' ^BigDecimal x
-                ^BigDecimal y)]
+        res (*' x y)]
     (assoc state :stack
            (cons res rest))))
 
@@ -107,8 +104,7 @@
   [insn state]
   (let [stack (:stack state)
         [x y & rest] stack
-        res (/ ^BigDecimal x
-               ^BigDecimal y)]
+        res (/ x y)]
     (assoc state :stack
            (cons res rest))))
 
