@@ -33,6 +33,13 @@
 
 ;; IO
 ;; ==
+(defmethod eval-insn :read
+  [insn state]
+  (update state :stack
+          (fn [stack]
+            (cons (u/next-obj *in*)
+                  stack))))
+
 (defmethod eval-insn :print
   [insn state]
   (let [[x & rest] (:stack state)]

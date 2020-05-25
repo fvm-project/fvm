@@ -55,7 +55,13 @@
                                           :value 2}
                                          {:op :add}]}]}))))
 
-(deftest print-test
+(deftest io-test
+  (is (= [3]
+         (:stack
+          (with-in-str "1 2"
+            (fvm/interpret {:code [{:op :read}
+                                   {:op :read}
+                                   {:op :add}]})))))
   (is (= "hi"
          (with-out-str
            (apply-op :print ["hi"])))))
