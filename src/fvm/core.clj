@@ -152,38 +152,45 @@
   (let [op (:op insn)
         _ (assert (contains? (:ops state) op)
                   (str "Undefined op: " op))
-        op-code (-> state :ops op :body)
-        curr-millis (u/curr-millis)
-        two-ms-ago (- curr-millis 2)
-        called-ats (-> state :ops op :called-ats)
+        op-info (-> state :ops op)
+        op-code (:body op-info)
+        compiled-op (:compiled-trace op-info)]
+    (if (and false
+             (some? compiled-op)
+             (not (:fallback? state)))
+      (compiled-op state)
+      (let [curr-millis (u/curr-millis)
+            two-ms-ago (- curr-millis 2)
+            called-ats (-> state :ops op :called-ats)
 
-        calls-in-last-two-ms
-        (->> state :ops op :called-ats
-             (filter #(<= two-ms-ago %)))
+            calls-in-last-two-ms
+            (->> state :ops op :called-ats
+                 (filter #(<= two-ms-ago %)))
 
-        times-called-in-last-two-ms
-        (count calls-in-last-two-ms)
+            times-called-in-last-two-ms
+            (count calls-in-last-two-ms)
 
-        should-trace? (and (not (-> state :ops op :trace-start-idx))
-                           (>= times-called-in-last-two-ms 5))
-        new-op-code (if-not should-trace?
-                      op-code
-                      (vec (concat [{:op :trace-start
-                                     :value op}]
-                                   op-code
-                                   [{:op :trace-end
-                                     :value op}])))]
-    (-> state
-        (assoc-in [:ops op :called-ats]
-                  (if (seq called-ats)
-                    (conj calls-in-last-two-ms curr-millis)
-                    [curr-millis]))
-        (update :code
-                (fn [[insn & insns]]
-                  (vec
-                   (concat [insn]
-                           new-op-code
-                           insns)))))))
+            should-trace? (and (nil? compiled-op)
+                               (nil? (:trace-start-idx op-info))
+                               (>= times-called-in-last-two-ms 5))
+            new-op-code (if-not should-trace?
+                          op-code
+                          (vec (concat [{:op :trace-start
+                                         :value op}]
+                                       op-code
+                                       [{:op :trace-end
+                                         :value op}])))]
+        (-> state
+            (assoc-in [:ops op :called-ats]
+                      (if (seq called-ats)
+                        (conj calls-in-last-two-ms curr-millis)
+                        [curr-millis]))
+            (update :code
+                    (fn [[insn & insns]]
+                      (vec
+                       (concat [insn]
+                               new-op-code
+                               insns)))))))))
 
 
 ;; Interpreter
@@ -216,7 +223,12 @@
             :trace-end
             (let [traced-op (:value insn)
                   start-idx (-> state :ops traced-op :trace-start-idx)
+                  end-idx (count @trace)
                   op-trace (drop start-idx @trace)]
+              (comment
+                (println :compiling traced-op)
+                (println :trace-range start-idx end-idx)
+                (println))
               (recur (-> state
                          (update :code rest)
                          (u/dissoc-in [:ops traced-op :trace-start-idx])
@@ -237,12 +249,11 @@
 (defmethod eval-insn :guard
   [insn state]
   (let [stack (:stack state)
-        [x y] stack
         check (:check insn)
         fallback (:fallback insn)]
-    (if (check x y)
+    (if (check stack)
       state
-      (fallback stack))))
+      (fallback state))))
 
 (defn make-eq-guard
   [insn trace]
@@ -250,18 +261,19 @@
     (let [[x y] (-> trace first :stack)
           eq-fn (if (number? x) == =)
           bool (eq-fn x y)
-          check #(= bool (eq-fn %1 %2))]
+          check (fn [[x y & _]]
+                  (= bool (eq-fn x y)))]
       (eval-insn
        {:op :guard
         :check check
         :fallback
-        (fn [stack]
+        (fn [init-state]
           (assoc
-           (interpret {:ops (-> trace first :ops)
-                       :code (if bool
+           (interpret {:code (if bool
                                (:else insn)
                                (:then insn))
-                       :stack stack})
+                       :stack (:stack init-state)
+                       :fallback? true})
            :interpreted? true))}
        state))))
 
@@ -285,22 +297,22 @@
 
         ops
         (map-indexed (fn [idx {:keys [code]}]
-                       [(first code)
-                        (compile-insn (first code)
-                                      (drop (inc idx)
-                                            primitive-trace))])
+                       (compile-insn (first code)
+                                     (drop (inc idx)
+                                           primitive-trace)))
                      primitive-trace)]
-    (fn [stack]
-      (reduce (fn [state [insn op-fn]]
-                (comment
-                  (println insn)
-                  (println (:stack state))
-                  (println))
-                (if (:interpreted? state)
-                  (reduced state)
-                  (op-fn state)))
-              {:stack stack}
-              ops))))
+    (comment
+      (println :compiled-trace)
+      (pp/pprint (u/clean-trace primitive-trace))
+      (println))
+    (fn [init-state]
+      (let [res (reduce (fn [state op-fn]
+                          (if (:interpreted? state)
+                            (reduced state)
+                            (op-fn state)))
+                        {:stack (:stack init-state)}
+                        ops)]
+        (assoc init-state :stack (:stack res))))))
 
 
 ;; Main

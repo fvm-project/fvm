@@ -35,9 +35,13 @@
                                     [{:op :push
                                       :value N}
                                      {:op :to-zero}])})
-        compiled-fn (-> final-state :ops :to-zero :compiled-trace)]
+        compiled-fn (-> final-state :ops :to-zero :compiled-trace)
+        test-compiled-fn (fn [n]
+                           (-> {:stack [n]}
+                               compiled-fn
+                               :stack))]
     (is (= (range 1 6)
-           (:stack (compiled-fn [5]))))
+           (test-compiled-fn 5)))
 
     (is (= (range 1 21)
-           (:stack (compiled-fn [20]))))))
+           (test-compiled-fn 20)))))
