@@ -155,42 +155,47 @@
         op-info (-> state :ops op)
         op-code (:body op-info)
         compiled-op (:compiled-trace op-info)]
-    (if (and false
-             (some? compiled-op)
+    (if (and (some? compiled-op)
              (not (:fallback? state)))
       (compiled-op state)
-      (let [curr-millis (u/curr-millis)
-            two-ms-ago (- curr-millis 2)
-            called-ats (-> state :ops op :called-ats)
+      (if (:fallback? state)
+        (update state :code
+                (fn [[no-op & insns]]
+                  (vec
+                   (concat [no-op]
+                           op-code
+                           insns))))
+        (let [curr-millis (u/curr-millis)
+              two-ms-ago (- curr-millis 2)
+              called-ats (:called-ats op-info)
 
-            calls-in-last-two-ms
-            (->> state :ops op :called-ats
-                 (filter #(<= two-ms-ago %)))
+              calls-in-last-two-ms
+              (->> state :ops op :called-ats
+                   (filter #(<= two-ms-ago %)))
 
-            times-called-in-last-two-ms
-            (count calls-in-last-two-ms)
+              times-called-in-last-two-ms
+              (count calls-in-last-two-ms)
 
-            should-trace? (and (nil? compiled-op)
-                               (nil? (:trace-start-idx op-info))
-                               (>= times-called-in-last-two-ms 5))
-            new-op-code (if-not should-trace?
-                          op-code
-                          (vec (concat [{:op :trace-start
-                                         :value op}]
-                                       op-code
-                                       [{:op :trace-end
-                                         :value op}])))]
-        (-> state
-            (assoc-in [:ops op :called-ats]
-                      (if (seq called-ats)
-                        (conj calls-in-last-two-ms curr-millis)
-                        [curr-millis]))
-            (update :code
-                    (fn [[insn & insns]]
-                      (vec
-                       (concat [insn]
-                               new-op-code
-                               insns)))))))))
+              should-trace? (and (nil? (:trace-start-idx op-info))
+                                 (>= times-called-in-last-two-ms 5))
+              new-op-code (if-not should-trace?
+                            op-code
+                            (vec (concat [{:op :trace-start
+                                           :value op}]
+                                         op-code
+                                         [{:op :trace-end
+                                           :value op}])))]
+          (-> state
+              (assoc-in [:ops op :called-ats]
+                        (if (seq called-ats)
+                          (conj calls-in-last-two-ms curr-millis)
+                          [curr-millis]))
+              (update :code
+                      (fn [[insn & insns]]
+                        (vec
+                         (concat [insn]
+                                 new-op-code
+                                 insns))))))))))
 
 
 ;; Interpreter
@@ -225,7 +230,7 @@
                   start-idx (-> state :ops traced-op :trace-start-idx)
                   end-idx (count @trace)
                   op-trace (drop start-idx @trace)]
-              (comment
+              (comment do
                 (println :compiling traced-op)
                 (println :trace-range start-idx end-idx)
                 (println))
@@ -233,7 +238,9 @@
                          (update :code rest)
                          (u/dissoc-in [:ops traced-op :trace-start-idx])
                          (assoc-in [:ops traced-op :compiled-trace]
-                                   (compile op-trace)))))
+                                   (compile (-> state :ops traced-op :body)
+                                            op-trace
+                                            trace)))))
 
             ;; default
             (recur (update (eval-insn insn state)
@@ -253,7 +260,7 @@
         fallback (:fallback insn)]
     (if (check stack)
       state
-      (fallback state))))
+      (fallback))))
 
 (defn make-eq-guard
   [insn trace]
@@ -266,15 +273,13 @@
       (eval-insn
        {:op :guard
         :check check
-        :fallback
-        (fn [init-state]
-          (assoc
-           (interpret {:code (if bool
-                               (:else insn)
-                               (:then insn))
-                       :stack (:stack init-state)
-                       :fallback? true})
-           :interpreted? true))}
+        :fallback #(assoc
+                    (interpret (assoc state
+                                      :code (if bool
+                                              (:else insn)
+                                              (:then insn))
+                                      :fallback? true))
+                    :interpreted? true)}
        state))))
 
 (defn compile-insn [insn trace]
@@ -282,10 +287,11 @@
     :eq? (make-eq-guard insn trace)
 
     ;; default
-    (partial eval-insn insn)))
+    (fn [state]
+      (eval-insn insn state))))
 
 (defn compile
-  [trace]
+  [op-body op-trace trace-atom]
   (let [primitive-trace
         (filter (fn [state]
                   (-> state
@@ -293,7 +299,7 @@
                       first
                       :op
                       primitive?))
-                trace)
+                op-trace)
 
         ops
         (map-indexed (fn [idx {:keys [code]}]
@@ -306,11 +312,16 @@
       (pp/pprint (u/clean-trace primitive-trace))
       (println))
     (fn [init-state]
+      ;; log the compiled instruction's trace
+      ;; so other instructions can be compiled
+      (doseq [insn op-body]
+        (swap! trace-atom conj {:code [insn]}))
       (let [res (reduce (fn [state op-fn]
                           (if (:interpreted? state)
                             (reduced state)
                             (op-fn state)))
-                        {:stack (:stack init-state)}
+                        {:stack (:stack init-state)
+                         :ops (:ops init-state)}
                         ops)]
         (assoc init-state :stack (:stack res))))))
 

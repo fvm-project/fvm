@@ -29,7 +29,7 @@
            (:stack final-state)))))
 
 (deftest jit-test
-  (let [N 10
+  (let [N 100
         final-state (fvm/interpret
                      {:code (concat to-zero-script
                                     [{:op :push
@@ -37,11 +37,12 @@
                                      {:op :to-zero}])})
         compiled-fn (-> final-state :ops :to-zero :compiled-trace)
         test-compiled-fn (fn [n]
-                           (-> {:stack [n]}
+                           (-> {:stack [n]
+                                :ops (:ops final-state)}
                                compiled-fn
                                :stack))]
     (is (= (range 1 6)
            (test-compiled-fn 5)))
 
-    (is (= (range 1 21)
-           (test-compiled-fn 20)))))
+    (is (= (range 1 201)
+           (test-compiled-fn 200)))))
