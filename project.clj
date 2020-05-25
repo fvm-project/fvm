@@ -10,7 +10,8 @@
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}
              :dev {:plugins [[lein-shell "0.5.0"]]
                    :global-vars {*warn-on-reflection* true
-                                 *unchecked-math* :warn-on-boxed}}}
+                                 ;; *unchecked-math* :warn-on-boxed
+                                 }}}
   :plugins [[lein-eftest "0.5.9"]
             [lein-cloverage "1.1.2"]]
   :aliases
