@@ -23,4 +23,5 @@
     "--report-unsupported-elements-at-runtime"
     "--initialize-at-build-time"
     "-jar" "./target/uberjar/${:uberjar-name:-${:name}-${:version}-standalone.jar}"
+    "-H:+ReportExceptionStackTraces"
     "-H:Name=./target/${:name}"]})
