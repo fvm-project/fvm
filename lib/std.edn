@@ -1,4 +1,10 @@
 {:op :defop
+ :name :inc
+ :value [{:op :push
+          :value 1}
+         {:op :add}]}
+
+{:op :defop
  :name :dec
  :value [{:op :push
           :value 1}
