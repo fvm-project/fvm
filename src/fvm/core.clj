@@ -221,11 +221,9 @@
             :trace-end
             (let [traced-op (:value insn)
                   start-idx (-> state :ops traced-op :trace-start-idx)
-                  end-idx (count @trace)
                   op-trace (drop start-idx @trace)]
               (comment do
                 (println :compiling traced-op)
-                (println :trace-range start-idx end-idx)
                 (println))
               (recur (-> state
                          (update :code rest)
