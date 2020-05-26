@@ -8,11 +8,14 @@
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}
-             :dev {:plugins [[lein-shell "0.5.0"]]
+             :dev {:source-paths ["src" "dev"]
+                   :dependencies [[com.clojure-goes-fast/clj-async-profiler "0.4.1"]]
+                   :jvm-opts ["-Djdk.attach.allowAttachSelf"]
                    :global-vars {*warn-on-reflection* true
                                  ;; *unchecked-math* :warn-on-boxed
                                  }}}
-  :plugins [[lein-eftest "0.5.9"]
+  :plugins [[lein-shell "0.5.0"]
+            [lein-eftest "0.5.9"]
             [lein-cloverage "1.1.2"]]
   :aliases
   {"native"
@@ -24,4 +27,6 @@
     "--initialize-at-build-time"
     "-jar" "./target/uberjar/${:uberjar-name:-${:name}-${:version}-standalone.jar}"
     "-H:+ReportExceptionStackTraces"
-    "-H:Name=./target/${:name}"]})
+    "-H:Name=./target/${:name}"]
+
+   "profile" ["run" "-m" "profiler"]})
