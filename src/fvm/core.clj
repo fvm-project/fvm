@@ -196,14 +196,14 @@
 (declare compile)
 
 (defn interpret
-  [{:keys [code ops stack]}]
+  [{:keys [code ops stack trace]}]
   (comment
     (println :interpreting)
     (println :code)
     (pp/pprint code)
     (println :stack stack)
     (println))
-  (let [trace (atom [])]
+  (let [trace (or trace (atom []))]
     (try
       (loop [state {:code code
                     :ops (or ops {})
@@ -276,6 +276,7 @@
                                       :code (if bool
                                               (:else insn)
                                               (:then insn))
+                                      :trace (:trace state)
                                       :fallback? true))
                     :interpreted? true)}
        state))))
@@ -319,9 +320,12 @@
                             (reduced state)
                             (op-fn state)))
                         {:stack (:stack init-state)
-                         :ops (:ops init-state)}
+                         :ops (:ops init-state)
+                         :trace trace-atom}
                         ops)]
-        (assoc init-state :stack (:stack res))))))
+        (assoc init-state
+               :stack (:stack res)
+               :ops (:ops res))))))
 
 
 ;; Main
