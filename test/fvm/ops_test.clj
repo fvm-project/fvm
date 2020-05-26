@@ -54,9 +54,11 @@
                                 {:op :call}]})))
   (is (= {:code []
           :stack nil
-          :ops {:add-2 {:body [{:op :push
-                                :value 2}
-                               {:op :add}]}}}
+          :ops {:add-2 {:name :add-2
+                        :value [{:op :push
+                                 :value 2}
+                                {:op :add}]
+                        :dont-jit? true}}}
          (fvm/interpret {:code [{:op :defop
                                  :name :add-2
                                  :value [{:op :push
@@ -76,8 +78,10 @@
 
 (deftest requires-test
   (is (= {:code (),
-          :ops {:test/inc {:body [{:op :push, :value 1}
-                                  {:op :add}]}},
+          :ops {:test/inc {:name :test/inc
+                           :value [{:op :push, :value 1}
+                                   {:op :add}]
+                           :dont-jit? true}},
           :stack nil}
          (fvm/interpret {:code [{:op :requires
                                  :value ["test/test.edn"]}]}))))

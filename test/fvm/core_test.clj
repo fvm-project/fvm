@@ -67,7 +67,7 @@
       (is (= (range 1 201)
              (test-compiled-fn 200)))))
 
-  (testing "non-tail recursive ops are interpreted succesfully"
+  (testing "non-tail recursive ops are excluded from jit"
     (let [N 100
           run-fact #(fvm/interpret
                      {:code (concat fact-script

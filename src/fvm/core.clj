@@ -139,8 +139,12 @@
 
 (defmethod eval-insn :defop
   [insn state]
-  (let [{:keys [name value]} insn]
-    (update state :ops assoc-in [name :body] value)))
+  (let [{:keys [name value]} insn
+        can-jit? (u/self-tail-recursive? insn)]
+    (assoc-in state [:ops name]
+              {:name name
+               :value value
+               :dont-jit? (not can-jit?)})))
 
 (defmethod eval-insn :default
   [insn state]
@@ -148,47 +152,52 @@
         _ (assert (contains? (:ops state) op)
                   (str "Undefined op: " op))
         op-info (-> state :ops op)
-        op-code (:body op-info)
+        op-code (:value op-info)
         compiled-op (:compiled-trace op-info)]
-    (if (and (some? compiled-op)
-             (not (:fallback? state)))
+    (cond
+      (and (some? compiled-op)
+           (not (:fallback? state)))
       (compiled-op state)
-      (if (:fallback? state)
-        (update state :code
-                (fn [[no-op & insns]]
-                  (u/fastcat [no-op]
-                             op-code
-                             insns)))
-        (let [curr-millis (u/curr-millis)
-              two-ms-ago (- curr-millis 2)
-              called-ats (:called-ats op-info)
 
-              calls-in-last-two-ms
-              (->> state :ops op :called-ats
-                   (filter #(<= two-ms-ago %)))
+      (or (:fallback? state)
+          (:dont-jit? op-info))
+      (update state :code
+              (fn [[no-op & insns]]
+                (u/fastcat [no-op]
+                           op-code
+                           insns)))
 
-              times-called-in-last-two-ms
-              (count calls-in-last-two-ms)
+      :else
+      (let [curr-millis (u/curr-millis)
+            two-ms-ago (- curr-millis 2)
+            called-ats (:called-ats op-info)
 
-              should-trace? (and (nil? (:trace-start-idx op-info))
-                                 (>= times-called-in-last-two-ms 5))
-              new-op-code (if-not should-trace?
-                            op-code
-                            (u/fastcat [{:op :trace-start
-                                         :value op}]
-                                       op-code
-                                       [{:op :trace-end
-                                         :value op}]))]
-          (-> state
-              (assoc-in [:ops op :called-ats]
-                        (if (seq called-ats)
-                          (conj calls-in-last-two-ms curr-millis)
-                          [curr-millis]))
-              (update :code
-                      (fn [[insn & insns]]
-                        (u/fastcat [insn]
-                                   new-op-code
-                                   insns)))))))))
+            calls-in-last-two-ms
+            (->> state :ops op :called-ats
+                 (filter #(<= two-ms-ago %)))
+
+            times-called-in-last-two-ms
+            (count calls-in-last-two-ms)
+
+            should-trace? (and (nil? (:trace-start-idx op-info))
+                               (>= times-called-in-last-two-ms 5))
+            new-op-code (if-not should-trace?
+                          op-code
+                          (u/fastcat [{:op :trace-start
+                                       :value op}]
+                                     op-code
+                                     [{:op :trace-end
+                                       :value op}]))]
+        (-> state
+            (assoc-in [:ops op :called-ats]
+                      (if (seq called-ats)
+                        (conj calls-in-last-two-ms curr-millis)
+                        [curr-millis]))
+            (update :code
+                    (fn [[insn & insns]]
+                      (u/fastcat [insn]
+                                 new-op-code
+                                 insns))))))))
 
 
 ;; Interpreter
@@ -237,7 +246,7 @@
                          (u/dissoc-in [:ops traced-op :trace-start-idx])
                          (u/dissoc-in [:ops traced-op :called-ats])
                          (assoc-in [:ops traced-op :compiled-trace]
-                                   (compile (-> state :ops traced-op :body)
+                                   (compile (-> state :ops traced-op :value)
                                             op-trace
                                             trace)))))
 

@@ -65,3 +65,19 @@
               (push-all coll acc))
             stack
             others)))
+
+(defn branching? [insn]
+  (or (:then insn)
+      (:else insn)))
+
+(defn get-leaves [body]
+  (let [last-insn (last body)]
+    (if (branching? last-insn)
+      (concat (get-leaves (:then last-insn))
+              (get-leaves (:else last-insn)))
+      [last-insn])))
+
+(defn self-tail-recursive? [op-info]
+  (let [{:keys [name value]} op-info]
+    (some #(= name (:op %))
+          (get-leaves value))))
