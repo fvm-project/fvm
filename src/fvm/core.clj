@@ -221,7 +221,14 @@
             :trace-end
             (let [traced-op (:value insn)
                   start-idx (-> state :ops traced-op :trace-start-idx)
-                  op-trace (drop start-idx @trace)]
+                  op-trace (drop start-idx @trace)
+                  ops-being-traced (->> state
+                                        :ops
+                                        (#(dissoc % traced-op))
+                                        vals
+                                        (filter :trace-start-idx))]
+              (when (empty? ops-being-traced)
+                (swap! trace #(take-last 100 %)))
               (comment do
                 (println :compiling traced-op)
                 (println))
