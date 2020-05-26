@@ -228,7 +228,7 @@
                                         vals
                                         (filter :trace-start-idx))]
               (when (empty? ops-being-traced)
-                (swap! trace #(take-last 100 %)))
+                (swap! trace #(take-last 1 %)))
               (comment do
                 (println :compiling traced-op)
                 (println))
