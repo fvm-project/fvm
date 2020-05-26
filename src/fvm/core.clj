@@ -235,6 +235,7 @@
               (recur (-> state
                          (update :code rest)
                          (u/dissoc-in [:ops traced-op :trace-start-idx])
+                         (u/dissoc-in [:ops traced-op :called-ats])
                          (assoc-in [:ops traced-op :compiled-trace]
                                    (compile (-> state :ops traced-op :body)
                                             op-trace
