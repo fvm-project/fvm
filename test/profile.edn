@@ -17,5 +17,5 @@
                  {:op :mul}]}]}
 
 {:op :push
- :value 15000}
+ :value 5000}
 {:op :fact}

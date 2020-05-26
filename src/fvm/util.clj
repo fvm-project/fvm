@@ -51,3 +51,17 @@
     (println "Trace:")
     (doseq [insn trace]
       (println "\t" insn))))
+
+(defn push-all [coll stack]
+  (let [rcoll (reverse coll)]
+    (reduce (fn [acc x]
+              (cons x acc))
+            stack
+            rcoll)))
+
+(defn fastcat [& colls]
+  (let [[stack & others] (reverse colls)]
+    (reduce (fn [acc coll]
+              (push-all coll acc))
+            stack
+            others)))

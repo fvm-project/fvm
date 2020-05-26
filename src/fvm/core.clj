@@ -28,9 +28,9 @@
                            libs))
         [no-op & code] (:code state)]
     (assoc state :code
-           (vec (concat [no-op]
-                        insns
-                        code)))))
+           (u/fastcat [no-op]
+                      insns
+                      code))))
 
 
 ;; IO
@@ -119,10 +119,9 @@
         op-code (if (eq-fn x y) then else)]
     (update state :code
             (fn [[insn & insns]]
-              (vec
-               (concat [insn]
-                       op-code
-                       insns))))))
+              (u/fastcat [insn]
+                         op-code
+                         insns)))))
 
 
 ;; Macros
@@ -134,9 +133,9 @@
         (assoc :stack rest)
         (update :code
                 (fn [[no-op & insns]]
-                  (vec (concat [no-op]
-                               body
-                               insns)))))))
+                  (u/fastcat [no-op]
+                             body
+                             insns))))))
 
 (defmethod eval-insn :defop
   [insn state]
@@ -157,10 +156,9 @@
       (if (:fallback? state)
         (update state :code
                 (fn [[no-op & insns]]
-                  (vec
-                   (concat [no-op]
-                           op-code
-                           insns))))
+                  (u/fastcat [no-op]
+                             op-code
+                             insns)))
         (let [curr-millis (u/curr-millis)
               two-ms-ago (- curr-millis 2)
               called-ats (:called-ats op-info)
@@ -176,11 +174,11 @@
                                  (>= times-called-in-last-two-ms 5))
               new-op-code (if-not should-trace?
                             op-code
-                            (vec (concat [{:op :trace-start
-                                           :value op}]
-                                         op-code
-                                         [{:op :trace-end
-                                           :value op}])))]
+                            (u/fastcat [{:op :trace-start
+                                         :value op}]
+                                       op-code
+                                       [{:op :trace-end
+                                         :value op}]))]
           (-> state
               (assoc-in [:ops op :called-ats]
                         (if (seq called-ats)
@@ -188,10 +186,9 @@
                           [curr-millis]))
               (update :code
                       (fn [[insn & insns]]
-                        (vec
-                         (concat [insn]
-                                 new-op-code
-                                 insns))))))))))
+                        (u/fastcat [insn]
+                                   new-op-code
+                                   insns)))))))))
 
 
 ;; Interpreter
