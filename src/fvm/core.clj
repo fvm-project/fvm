@@ -139,12 +139,13 @@
 
 (defmethod eval-insn :defop
   [insn state]
-  (let [{:keys [name value]} insn
-        can-jit? (u/self-tail-recursive? insn)]
+  (let [{:keys [name value dont-jit?]} insn
+        dont-jit? (or dont-jit?
+                      (not (u/self-tail-recursive? insn)))]
     (assoc-in state [:ops name]
               {:name name
                :value value
-               :dont-jit? (not can-jit?)})))
+               :dont-jit? dont-jit?})))
 
 (defmethod eval-insn :default
   [insn state]

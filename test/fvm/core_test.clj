@@ -1,74 +1,77 @@
 (ns fvm.core-test
   (:require [clojure.test :refer :all]
-            [fvm.core :as fvm]))
+            [fvm.core :as fvm]
+            [fvm.util :as u]))
 
-(def range-script
-  [{:op :requires
-    :value ["lib/std.edn"]}
-
-   {:op :defop
-    :name :range
-    :value [{:op :push
-             :value 0}
-            {:op :eq?
-             :then [{:op :pop}
-                    {:op :pop}]
-             :else [{:op :pop}
-                    {:op :dup}
-                    {:op :dec}
-                    {:op :range}]}]}])
-
-(def fact-script
-  [{:op :requires
-    :value ["lib/std.edn"]}
-
-   {:op :defop
-    :name :fact
-    :value [{:op :push
-             :value 0}
-            {:op :eq?
-             :then [{:op :pop}
-                    {:op :pop}
-                    {:op :push
-                     :value 1}]
-             :else [{:op :pop}
-                    {:op :dup}
-                    {:op :dec}
-                    {:op :fact}
-                    {:op :mul}]}]}])
+(defmacro timing [expr]
+  `(let [start-ms# (u/curr-millis)
+         _# ~expr
+         end-ms# (u/curr-millis)]
+     (- end-ms# start-ms#)))
 
 (deftest interpreter-test
-  (let [N 10
-        final-state (fvm/interpret
-                     {:code (concat range-script
-                                    [{:op :push
-                                      :value N}
-                                     {:op :range}])})]
-    (is (= (range 1 (inc N))
-           (:stack final-state)))))
+  (testing "self tail recursive ops are jitted"
+    (let [range-script [{:op :requires
+                         :value ["lib/std.edn"]}
 
-(deftest jit-test
-  (testing "tail recursive ops are jitted"
-    (let [N 100
-          final-state (fvm/interpret
-                       {:code (concat range-script
-                                      [{:op :push
-                                        :value N}
-                                       {:op :range}])})
-          compiled-fn (-> final-state :ops :range :compiled-trace)
-          test-compiled-fn (fn [n]
+                        {:op :defop
+                         :name :range
+                         :value [{:op :push
+                                  :value 0}
+                                 {:op :eq?
+                                  :then [{:op :pop}
+                                         {:op :pop}]
+                                  :else [{:op :pop}
+                                         {:op :dup}
+                                         {:op :dec}
+                                         {:op :range}]}]}]
+
+          run-interpreted
+          #(fvm/interpret
+            {:code (concat range-script
+                           [{:op :push
+                             :value %}
+                            {:op :range}])})
+
+          test-interpreted-op #(:stack (run-interpreted %))
+          N 100
+          final-state (run-interpreted N)
+          compiled-op (-> final-state :ops :range :compiled-trace)
+          test-compiled-op (fn [n]
                              (-> {:stack [n]
                                   :ops (:ops final-state)}
-                                 compiled-fn
+                                 compiled-op
                                  :stack))]
-      (is (= (range 1 6)
-             (test-compiled-fn 5)))
+      (testing "correctness"
+        (is (= (range 1 6)
+               (test-compiled-op 5)))
 
-      (is (= (range 1 201)
-             (test-compiled-fn 200)))))
+        (is (= (range 1 201)
+               (test-compiled-op 200))))
+
+      (testing "performance"
+        (is (<= (timing (test-compiled-op 300))
+                (timing (test-interpreted-op 300)))))))
 
   (testing "non-tail recursive ops are excluded from jit"
-    (let [N 100
+    (let [fact-script [{:op :requires
+                        :value ["lib/std.edn"]}
+
+                       {:op :defop
+                        :name :fact
+                        :value [{:op :push
+                                 :value 0}
+                                {:op :eq?
+                                 :then [{:op :pop}
+                                        {:op :pop}
+                                        {:op :push
+                                         :value 1}]
+                                 :else [{:op :pop}
+                                        {:op :dup}
+                                        {:op :dec}
+                                        {:op :fact}
+                                        {:op :mul}]}]}]
+          N 100
           run-fact #(fvm/interpret
                      {:code (concat fact-script
                                     [{:op :push
