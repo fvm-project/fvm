@@ -1,6 +1,3 @@
-{:op :requires
- :value ["lib/std.edn"]}
-
 {:op :defop
  :name :fact
  :value [{:op :push
@@ -12,7 +9,10 @@
                   :value 1}]
           :else [{:op :pop}
                  {:op :dup}
-                 {:op :dec}
+                 {:op :push
+                  :value 1}
+                 {:op :swap}
+                 {:op :sub}
                  {:op :fact}
                  {:op :mul}]}]}
 
