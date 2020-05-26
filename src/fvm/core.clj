@@ -208,7 +208,7 @@
       (loop [state {:code code
                     :ops (or ops {})
                     :stack stack}]
-        (swap! trace conj state)
+        (swap! trace conj (dissoc state :ops))
         (if-let [[insn] (seq (:code state))]
           (case (:op insn)
             :trace-start
