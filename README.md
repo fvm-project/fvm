@@ -75,6 +75,10 @@ $ lein eftest
 5. Designed to be easily parsable and an easy compilation target
 6. Does not require a GC, being completely stack based
 
+## Status
+
+This is a research project with rough edges - here be dragons.
+
 ## License
 
 Copyright © 2020 Divyansh Prakash
