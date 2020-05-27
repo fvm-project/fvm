@@ -50,7 +50,8 @@
   (let [trace (-> ex ex-data :trace)]
     (println "Trace:")
     (doseq [insn trace]
-      (println "\t" insn))))
+      (print "\t")
+      (prn insn))))
 
 (defn push-all [coll stack]
   (let [rcoll (reverse coll)]
