@@ -4,7 +4,9 @@
 
 ## Example
 
-Here's a program that calculates and prints `factorial(5)`:
+fvm comes with an example interpreter for a simple language called **ednlang**.
+
+Here's a ednlang program that calculates and prints `factorial(5)`:
 ```clojure
 ;; import the standard library
 {:op :requires
@@ -40,7 +42,7 @@ Here's a program that calculates and prints `factorial(5)`:
 ### JVM
 
 To run the example factorial program, do:
-```shell
+```
 $ lein run test/fact.edn
 ```
 
@@ -49,31 +51,39 @@ $ lein run test/fact.edn
 #### Build from source
 
 Make sure you have GraalVM installed and `$GRAALVM_HOME` pointing to it, then do:
-```shell
+```
 $ ./compile
 ```
 
 #### Run
 
 Now you can do:
-```shell
+```
 $ target/fvm test/fact.edn
 ```
 
 ## Tests
 
-```shell
+```
 $ lein eftest
 ```
 
 ## Properties
 
-1. Custom ops (like `fact` above) are inlined and called at runtime
-2. No recursion limit - try running the factorial program for large values
-3. Code is data is code - anonymous ops can be stored and called
-4. Hot loops are traced and inlined at runtime (currently only self-tail recursion)
-5. Designed to be easily parsable and an easy compilation target
-6. Does not require a GC, being completely stack based
+### fvm
+
+- A pure Clojure library for writing JITing VMs (like RPython and Truffle/GraalVM)
+- Simple, functional interface
+- Hot loops are traced and inlined at runtime
+
+### ednlang
+
+- Simple language implemented on top of fvm
+- Custom ops (like `fact` above) are inlined and called at runtime
+- No recursion limit - try running the factorial program for large values
+- Code is data is code - anonymous ops can be stored and called
+- Designed to be easily parsable and an easy compilation target
+- Does not require a GC, being completely stack based
 
 ## Status
 
