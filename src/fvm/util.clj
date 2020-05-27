@@ -47,7 +47,8 @@
       (printf "Error parsing edn file '%s': %s\n" source (.getMessage e)))))
 
 (defn print-stack-trace [ex]
-  (let [trace (-> ex ex-data :trace)]
+  (let [{:keys [stack trace]} (ex-data ex)]
+    (println "Stack:" stack)
     (println "Trace:")
     (doseq [insn trace]
       (print "\t")

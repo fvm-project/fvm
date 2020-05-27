@@ -231,14 +231,7 @@
             :trace-end
             (let [traced-op (:value insn)
                   start-idx (-> state :ops traced-op :trace-start-idx)
-                  op-trace (drop start-idx @trace)
-                  ops-being-traced (->> state
-                                        :ops
-                                        (#(dissoc % traced-op))
-                                        vals
-                                        (filter :trace-start-idx))]
-              (when (empty? ops-being-traced)
-                (swap! trace #(take-last 1 %)))
+                  op-trace (drop start-idx @trace)]
               (comment do
                 (println :compiling traced-op)
                 (println))
@@ -257,7 +250,8 @@
           state))
       (catch Throwable e
         (throw (ex-info (str "Error! " e)
-                        {:trace (reverse (u/clean-trace @trace))}))))))
+                        {:trace (reverse (u/clean-trace @trace))
+                         :stack (-> @trace last :stack)}))))))
 
 
 ;; JIT
