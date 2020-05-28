@@ -1,8 +1,7 @@
 (ns fvm.core
   (:gen-class)
   (:refer-clojure :exclude [compile])
-  (:require [clojure.pprint :as pp]
-            [fvm.util :as u]))
+  (:require [fvm.util :as u]))
 
 (defmulti eval-insn
   (fn [insn state]
@@ -207,12 +206,6 @@
 
 (defn interpret
   [{:keys [code ops stack trace]}]
-  (comment
-    (println :interpreting)
-    (println :code)
-    (pp/pprint code)
-    (println :stack stack)
-    (println))
   (let [trace (or trace (atom []))]
     (try
       (loop [state {:code code
@@ -232,9 +225,6 @@
             (let [traced-op (:value insn)
                   start-idx (-> state :ops traced-op :trace-start-idx)
                   op-trace (drop start-idx @trace)]
-              (comment do
-                (println :compiling traced-op)
-                (println))
               (recur (-> state
                          (update :code rest)
                          (u/dissoc-in [:ops traced-op :trace-start-idx])
@@ -312,10 +302,6 @@
                                           first
                                           :stack)))
                      primitive-trace)]
-    (comment
-      (println :compiled-trace)
-      (pp/pprint (u/clean-trace primitive-trace))
-      (println))
     (fn [init-state]
       ;; log the compiled instruction's trace
       ;; so other instructions can be compiled
