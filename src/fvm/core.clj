@@ -266,9 +266,9 @@
       (fallback))))
 
 (defn make-eq-guard
-  [insn trace]
+  [insn init-stack]
   (fn [state]
-    (let [[x y] (-> trace first :stack)
+    (let [[x y] init-stack
           eq-fn (if (number? x) == =)
           bool (eq-fn x y)
           check (fn [[x y & _]]
@@ -281,14 +281,13 @@
                                       :code (if bool
                                               (:else insn)
                                               (:then insn))
-                                      :trace (:trace state)
                                       :fallback? true))
                     :interpreted? true)}
        state))))
 
-(defn compile-insn [insn trace]
+(defn compile-insn [insn init-stack]
   (case (:op insn)
-    :eq? (make-eq-guard insn trace)
+    :eq? (make-eq-guard insn init-stack)
 
     ;; default
     (fn [state]
@@ -308,8 +307,10 @@
         ops
         (map-indexed (fn [idx {:keys [code]}]
                        (compile-insn (first code)
-                                     (drop (inc idx)
-                                           primitive-trace)))
+                                     (->> primitive-trace
+                                          (drop (inc idx))
+                                          first
+                                          :stack)))
                      primitive-trace)]
     (comment
       (println :compiled-trace)
