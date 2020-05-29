@@ -1,5 +1,5 @@
-{:op :defop
- :name :test/inc
- :value [{:op :push
-          :value 1}
-         {:op :add}]}
+{:fvm.fvm/type :fvm.ednlang/defop
+ :fvm.ednlang/name :test/inc
+ :fvm.ednlang/value [{:fvm.fvm/type :fvm.ednlang/push
+                      :fvm.ednlang/value 1}
+                     {:fvm.fvm/type :fvm.ednlang/add}]}

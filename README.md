@@ -9,32 +9,32 @@ fvm comes with an example interpreter for a simple language called **ednlang**.
 Here's a ednlang program that calculates and prints `factorial(5)`:
 ```clojure
 ;; import the standard library
-{:op :requires
- :value ["lib/std.edn"]}
+{:fvm.fvm/type :fvm.ednlang/requires
+ :fvm.ednlang/value ["lib/std.edn"]}
 
 ;; define a new opcode for factorial
-{:op :defop
- :name :fact
- :value [{:op :push
-          :value 0}
-         {:op :eq?
-          :then [{:op :pop}
-                 {:op :pop}
-                 {:op :push
-                  :value 1}]
-          :else [{:op :pop}
-                 {:op :dup}
-                 {:op :dec}
-                 {:op :fact}
-                 {:op :mul}]}]}
+{:fvm.fvm/type :fvm.ednlang/defop
+ :fvm.ednlang/name :test/fact
+ :fvm.ednlang/value [{:fvm.fvm/type :fvm.ednlang/push
+                      :fvm.ednlang/value 0}
+                     {:fvm.fvm/type :fvm.ednlang/eq?
+                      :fvm.ednlang/then [{:fvm.fvm/type :fvm.ednlang/pop}
+                                         {:fvm.fvm/type :fvm.ednlang/pop}
+                                         {:fvm.fvm/type :fvm.ednlang/push
+                                          :fvm.ednlang/value 1}]
+                      :fvm.ednlang/else [{:fvm.fvm/type :fvm.ednlang/pop}
+                                         {:fvm.fvm/type :fvm.ednlang/dup}
+                                         {:fvm.fvm/type :fvm.ednlang/dec}
+                                         {:fvm.fvm/type :test/fact}
+                                         {:fvm.fvm/type :fvm.ednlang/mul}]}]}
 
 ;; call it
-{:op :push
- :value 5}
-{:op :fact}
+{:fvm.fvm/type :fvm.ednlang/push
+ :fvm.ednlang/value 5}
+{:fvm.fvm/type :test/fact}
 
 ;; print the result
-{:op :println}
+{:fvm.fvm/type :fvm.ednlang/println}
 ```
 
 ## Usage
@@ -78,11 +78,10 @@ $ lein eftest
 
 ### ednlang
 
-- Simple language implemented on top of fvm
+- Simple stack-based language implemented on top of fvm
 - Custom ops (like `fact` above) are inlined and called at runtime
 - No recursion limit - try running the factorial program for large values
 - Code is data is code - anonymous ops can be stored and called
-- Designed to be easily parsable and an easy compilation target
 - Does not require a GC, being completely stack based
 
 ## Status
