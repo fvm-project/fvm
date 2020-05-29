@@ -4,7 +4,7 @@
 
 ;; Deps
 ;; ====
-(fvm/defnode :requires {::fvm/trace? false}
+(fvm/defnode ::requires {::fvm/trace? false}
   (fn [state]
     (let [insn (-> state ::fvm/nodes first)
           libs (::value insn)
@@ -17,13 +17,13 @@
 
 ;; IO
 ;; ==
-(fvm/defnode :read {}
+(fvm/defnode ::read {}
   (fn [state]
     (-> state
         (update ::stack #(cons (u/next-obj *in*) %))
         (update ::fvm/nodes rest))))
 
-(fvm/defnode :print {}
+(fvm/defnode ::print {}
   (fn [state]
     (let [[x & rest] (::stack state)]
       (print x)
@@ -35,26 +35,26 @@
 
 ;; Memory
 ;; ======
-(fvm/defnode :push {}
+(fvm/defnode ::push {}
   (fn [state]
     (let [insn (-> state ::fvm/nodes first)]
       (-> state
           (update ::stack #(cons (::value insn) %))
           (update ::fvm/nodes rest)))))
 
-(fvm/defnode :pop {}
+(fvm/defnode ::pop {}
   (fn [state]
     (-> state
         (update ::stack rest)
         (update ::fvm/nodes rest))))
 
-(fvm/defnode :dup {}
+(fvm/defnode ::dup {}
   (fn [state]
     (-> state
         (update ::stack #(cons (first %) %))
         (update ::fvm/nodes rest))))
 
-(fvm/defnode :swap {}
+(fvm/defnode ::swap {}
   (fn [state]
     (-> state
         (update ::stack
@@ -65,7 +65,7 @@
 
 ;; Arithmetic
 ;; ==========
-(fvm/defnode :add {}
+(fvm/defnode ::add {}
   (fn [state]
     (let [stack (::stack state)
           [x y & rem] stack
@@ -74,7 +74,7 @@
           (assoc ::stack (cons res rem))
           (update ::fvm/nodes rest)))))
 
-(fvm/defnode :sub {}
+(fvm/defnode ::sub {}
   (fn [state]
     (let [stack (::stack state)
           [x y & rem] stack
@@ -83,7 +83,7 @@
           (assoc ::stack (cons res rem))
           (update ::fvm/nodes rest)))))
 
-(fvm/defnode :mul {}
+(fvm/defnode ::mul {}
   (fn [state]
     (let [stack (::stack state)
           [x y & rem] stack
@@ -92,7 +92,7 @@
           (assoc ::stack (cons res rem))
           (update ::fvm/nodes rest)))))
 
-(fvm/defnode :div {}
+(fvm/defnode ::div {}
   (fn [state]
     (let [stack (::stack state)
           [x y & rem] stack
@@ -104,16 +104,16 @@
 
 ;; Logic
 ;; =====
-(fvm/defnode :eq? {::fvm/branching? true
-                   ::fvm/check-state
-                   (fn [state]
-                     (let [[x y] (::stack state)
-                           eq-fn (if (number? x) == =)]
-                       (eq-fn x y)))}
+(fvm/defnode ::eq? {::fvm/branching? true
+                    ::fvm/check-state
+                    (fn [state]
+                      (let [[x y] (::stack state)
+                            eq-fn (if (number? x) == =)]
+                        (eq-fn x y)))}
   (fn [state]
     (let [insn (-> state ::fvm/nodes first)
           [x y] (::stack state)
-          {:keys [then else]} insn
+          {::keys [then else]} insn
           eq-fn (if (number? x) == =)
           op-code (if (eq-fn x y) then else)]
       (update state ::fvm/nodes
@@ -123,7 +123,7 @@
 
 ;; Macros
 ;; ======
-(fvm/defnode :call {}
+(fvm/defnode ::call {}
   (fn [state]
     (let [[body & rem] (::stack state)]
       (-> state
@@ -132,7 +132,7 @@
                   (fn [[_ & insns]]
                     (u/fastcat body insns)))))))
 
-(fvm/defnode :defop {}
+(fvm/defnode ::defop {}
   (fn [state]
     (let [insn (-> state ::fvm/nodes first)
           {::keys [name value dont-jit?]} insn
