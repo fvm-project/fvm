@@ -52,12 +52,12 @@
 
 (fvm/defnode ::print {}
   (fn [state]
-    (let [[x & rest] (::stack state)]
+    (let [[x & rem] (::stack state)]
       (print x)
       (flush)
       (-> state
-          (assoc ::stack rest)
-          (assoc ::fvm/nodes rest)))))
+          (assoc ::stack rem)
+          (update ::fvm/nodes rest)))))
 
 
 ;; Memory
