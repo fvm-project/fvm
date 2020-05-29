@@ -6,7 +6,7 @@
 
 ## Example
 
-fvm comes with an example interpreter for a simple language called **ednlang**.
+fvm comes with an example interpreter for a simple stack-based language called **ednlang**.
 
 Here's a ednlang program that calculates and prints `factorial(5)`:
 ```clojure
