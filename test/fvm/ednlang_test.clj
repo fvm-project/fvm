@@ -50,21 +50,20 @@
           ::ednlang/stack [1 1]}
          (run {::fvm/nodes [{::fvm/type :push
                              ::ednlang/value [{::fvm/type :push
-                                            ::ednlang/value 1}
-                                           {::fvm/type :dup}]}
+                                               ::ednlang/value 1}
+                                              {::fvm/type :dup}]}
                             {::fvm/type :call}]})))
-  #_(is (= {::fvm/nodes []
-            ::ednlang/stack nil
-            :ops {:add-2 {:name :add-2
-                          ::ednlang/value [{::fvm/type :push
-                                         ::ednlang/value 2}
-                                        {::fvm/type :add}]
-                          :dont-jit? true}}}
-           (run {::fvm/nodes [{::fvm/type :defop
-                               :name :add-2
-                               ::ednlang/value [{::fvm/type :push
-                                              ::ednlang/value 2}
-                                             {::fvm/type :add}]}]}))))
+  (is (= {::fvm/nodes []
+          ::ednlang/stack [7]}
+         (run {::fvm/nodes [{::fvm/type :defop
+                             ::ednlang/name :add-2
+                             ::ednlang/value [{::fvm/type :push
+                                               ::ednlang/value 2}
+                                              {::fvm/type :add}]}
+
+                            {::fvm/type :push
+                             ::ednlang/value 5}
+                            {::fvm/type :add-2}]}))))
 
 (deftest io-test
   (is (= [3]
@@ -81,7 +80,7 @@
   #_(is (= {::fvm/nodes []
             :ops {:test/inc {:name :test/inc
                              ::ednlang/value [{::fvm/type :push, ::ednlang/value 1}
-                                           {::fvm/type :add}]
+                                              {::fvm/type :add}]
                              :dont-jit? true}},
             ::ednlang/stack nil}
            (run {::fvm/nodes [{::fvm/type :requires

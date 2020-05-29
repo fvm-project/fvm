@@ -135,13 +135,12 @@
 (fvm/defnode :defop {}
   (fn [state]
     (let [insn (-> state ::fvm/nodes first)
-          {:keys [name value dont-jit?]} insn
+          {::keys [name value dont-jit?]} insn
           dont-jit? (or dont-jit?
                         (not (u/self-tail-recursive? insn)))]
-      (fvm/defnode name {:jit? (not dont-jit?)}
+      (fvm/defnode name {::fvm/jit? (not dont-jit?)}
         (fn [state*]
           (update state* ::fvm/nodes
                   (fn [[_ & nodes]]
                     (u/fastcat value nodes)))))
       (update state ::fvm/nodes rest))))
-

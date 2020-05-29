@@ -9,7 +9,7 @@
     (let [node (-> state ::nodes first)]
       (::type node))))
 
-(def node-opts
+(defonce node-opts
   (atom {}))
 
 (defn defnode
@@ -38,7 +38,7 @@
 (defnode :default {}
   (fn [state]
     (let [type (-> state ::nodes first ::type)]
-      (throw (Exception. (str "Undefined node type: " type))))))
+      (throw (Exception. ^String (str "Undefined node type: " type))))))
 
 (declare compile)
 
