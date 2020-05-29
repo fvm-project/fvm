@@ -44,7 +44,8 @@
 
 (defn interpret
   [{::keys [state trace-atom trace-info] :as S}]
-  (let [trace-atom (or trace-atom (atom []))]
+  (let [trace-atom (or trace-atom (atom []))
+        S (assoc S ::trace-atom trace-atom)]
     (if-let [[node] (-> state ::nodes seq)]
       (case (::type node)
         ::trace-start
@@ -60,12 +61,12 @@
                      (u/dissoc-in [::trace-info traced-node ::trace-start-idx])
                      (u/dissoc-in [::trace-info traced-node ::called-ats])
                      (assoc-in [::trace-info traced-node ::compiled-node]
-                               (compile node-trace trace-atom)))))
+                               (compile node-trace)))))
 
         ;; default
         (do
           (swap! trace-atom conj state)
-          (recur (assoc S :state (eval-node node state)))))
+          (recur (assoc S ::state (eval-node state)))))
       state)))
 
 
