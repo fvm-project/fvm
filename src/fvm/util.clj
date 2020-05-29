@@ -17,13 +17,6 @@
 (defn ^Long curr-millis []
   (System/currentTimeMillis))
 
-(defn print-stack-trace [ex]
-  (let [{:keys [trace]} (ex-data ex)]
-    (println "Trace:")
-    (doseq [node trace]
-      (print "\t")
-      (prn node))))
-
 (defn push-all [coll stack]
   (let [rcoll (reverse coll)]
     (reduce (fn [acc x]
