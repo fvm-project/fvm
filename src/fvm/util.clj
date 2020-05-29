@@ -1,6 +1,4 @@
-(ns fvm.util
-  (:require [clojure.java.io :as io]
-            [clojure.edn :as edn]))
+(ns fvm.util)
 
 (defn dissoc-in
   "Dissociates an entry from a nested associative structure returning a new
@@ -16,43 +14,15 @@
       m)
     (dissoc m k)))
 
-(defn clean-trace
-  [trace]
-  (map #(-> % :code first)
-       trace))
-
 (defn ^Long curr-millis []
   (System/currentTimeMillis))
 
-(defn next-obj [stream]
-  (edn/read {:eof ::eof}
-            stream))
-
-(defn load-source
-  "Load all instructions from an io/reader source (filename or io/resource)."
-  [source]
-  (try
-    (with-open [r (io/reader source)]
-      (let [stream (java.io.PushbackReader. r)]
-        (loop [insn (next-obj stream)
-               insns []]
-          (if (not= ::eof insn)
-            (recur (next-obj stream)
-                   (conj insns insn))
-            insns))))
-
-    (catch java.io.IOException e
-      (printf "Couldn't open '%s': %s\n" source (.getMessage e)))
-    (catch RuntimeException e
-      (printf "Error parsing edn file '%s': %s\n" source (.getMessage e)))))
-
 (defn print-stack-trace [ex]
-  (let [{:keys [stack trace]} (ex-data ex)]
-    (println "Stack:" stack)
+  (let [{:keys [trace]} (ex-data ex)]
     (println "Trace:")
-    (doseq [insn trace]
+    (doseq [node trace]
       (print "\t")
-      (prn insn))))
+      (prn node))))
 
 (defn push-all [coll stack]
   (let [rcoll (reverse coll)]

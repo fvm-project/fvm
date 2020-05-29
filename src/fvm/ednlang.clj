@@ -1,6 +1,33 @@
 (ns fvm.ednlang
-  (:require [fvm.fvm :as fvm]
+  (:require [clojure.edn :as edn]
+            [clojure.java.io :as io]
+            [fvm.fvm :as fvm]
             [fvm.util :as u]))
+
+;; Util
+;; ====
+(defn- next-obj [stream]
+  (edn/read {:eof ::eof}
+            stream))
+
+(defn- load-source
+  "Load all instructions from an io/reader source (filename or io/resource)."
+  [source]
+  (try
+    (with-open [r (io/reader source)]
+      (let [stream (java.io.PushbackReader. r)]
+        (loop [insn (next-obj stream)
+               insns []]
+          (if (not= ::eof insn)
+            (recur (next-obj stream)
+                   (conj insns insn))
+            insns))))
+
+    (catch java.io.IOException e
+      (printf "Couldn't open '%s': %s\n" source (.getMessage e)))
+    (catch RuntimeException e
+      (printf "Error parsing edn file '%s': %s\n" source (.getMessage e)))))
+
 
 ;; Deps
 ;; ====
@@ -8,7 +35,7 @@
   (fn [state]
     (let [insn (-> state ::fvm/nodes first)
           libs (::value insn)
-          insns (vec (mapcat #(u/load-source %)
+          insns (vec (mapcat #(load-source %)
                              libs))
           [_ & nodes] (::fvm/nodes state)]
       (assoc state ::fvm/nodes
@@ -20,7 +47,7 @@
 (fvm/defnode ::read {}
   (fn [state]
     (-> state
-        (update ::stack #(cons (u/next-obj *in*) %))
+        (update ::stack #(cons (next-obj *in*) %))
         (update ::fvm/nodes rest))))
 
 (fvm/defnode ::print {}
