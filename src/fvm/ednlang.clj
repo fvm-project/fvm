@@ -182,7 +182,8 @@
           {::keys [name value dont-jit?]} insn
           dont-jit? (or dont-jit?
                         (not (self-tail-recursive? insn)))]
-      (fvm/defnode name {::fvm/jit? (not dont-jit?)}
+      (fvm/defnode name {::fvm/jit? (not dont-jit?)
+                         ::fvm/trace? false}
         (fn [state*]
           (update state* ::fvm/nodes
                   (fn [[_ & nodes]]
