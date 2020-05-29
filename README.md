@@ -78,11 +78,10 @@ $ lein eftest
 
 ### ednlang
 
-- Simple language implemented on top of fvm
+- Simple stack-based language implemented on top of fvm
 - Custom ops (like `fact` above) are inlined and called at runtime
 - No recursion limit - try running the factorial program for large values
 - Code is data is code - anonymous ops can be stored and called
-- Designed to be easily parsable and an easy compilation target
 - Does not require a GC, being completely stack based
 
 ## Status

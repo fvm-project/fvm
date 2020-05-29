@@ -1,21 +1,21 @@
-{:op :defop
- :name :fact
- :value [{:op :push
-          :value 0}
-         {:op :eq?
-          :then [{:op :pop}
-                 {:op :pop}
-                 {:op :push
-                  :value 1}]
-          :else [{:op :pop}
-                 {:op :dup}
-                 {:op :push
-                  :value 1}
-                 {:op :swap}
-                 {:op :sub}
-                 {:op :fact}
-                 {:op :mul}]}]}
+{:fvm.fvm/type :fvm.ednlang/defop
+ :fvm.ednlang/name :test/fact
+ :fvm.ednlang/value [{:fvm.fvm/type :fvm.ednlang/push
+                      :fvm.ednlang/value 0}
+                     {:fvm.fvm/type :fvm.ednlang/eq?
+                      :fvm.ednlang/then [{:fvm.fvm/type :fvm.ednlang/pop}
+                                         {:fvm.fvm/type :fvm.ednlang/pop}
+                                         {:fvm.fvm/type :fvm.ednlang/push
+                                          :fvm.ednlang/value 1}]
+                      :fvm.ednlang/else [{:fvm.fvm/type :fvm.ednlang/pop}
+                                         {:fvm.fvm/type :fvm.ednlang/dup}
+                                         {:fvm.fvm/type :fvm.ednlang/push
+                                          :fvm.ednlang/value 1}
+                                         {:fvm.fvm/type :fvm.ednlang/swap}
+                                         {:fvm.fvm/type :fvm.ednlang/sub}
+                                         {:fvm.fvm/type :test/fact}
+                                         {:fvm.fvm/type :fvm.ednlang/mul}]}]}
 
-{:op :push
- :value 5000}
-{:op :fact}
+{:fvm.fvm/type :fvm.ednlang/push
+ :fvm.ednlang/value 5000}
+{:fvm.fvm/type :test/fact}
