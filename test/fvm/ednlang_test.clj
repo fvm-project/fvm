@@ -77,11 +77,10 @@
            (apply-op :print ["hi"])))))
 
 (deftest requires-test
-  #_(is (= {::fvm/nodes []
-            :ops {:test/inc {:name :test/inc
-                             ::ednlang/value [{::fvm/type :push, ::ednlang/value 1}
-                                              {::fvm/type :add}]
-                             :dont-jit? true}},
-            ::ednlang/stack nil}
-           (run {::fvm/nodes [{::fvm/type :requires
-                               ::ednlang/value ["test/test.edn"]}]}))))
+  (is (= {::fvm/nodes []
+          ::ednlang/stack [2]}
+         (run {::fvm/nodes [{::fvm/type :requires
+                             ::ednlang/value ["test/test.edn"]}
+                            {::fvm/type :push
+                             ::ednlang/value 1}
+                            {::fvm/type :test/inc}]}))))

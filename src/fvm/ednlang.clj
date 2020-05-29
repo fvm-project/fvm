@@ -11,7 +11,7 @@
           insns (vec (mapcat #(u/load-source %)
                              libs))
           [_ & nodes] (::fvm/nodes state)]
-      (assoc state ::nodes
+      (assoc state ::fvm/nodes
              (u/fastcat insns nodes)))))
 
 
