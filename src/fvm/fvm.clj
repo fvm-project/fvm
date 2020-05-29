@@ -26,11 +26,14 @@
 (defn trace? [type]
   (-> @node-opts type ::trace?))
 
+(defn jit? [type]
+  (-> @node-opts type ::jit?))
+
 (defn branching? [type]
   (-> @node-opts type ::branching?))
 
 (defn get-check-state-fn [type]
-  (-> @node-opts type ::check-state-fn))
+  (-> @node-opts type ::check-state))
 
 
 ;; VM
@@ -50,8 +53,10 @@
       (case (::type node)
         ::trace-start
         (let [traced-node (::node node)]
-          (recur (assoc-in S [::trace-info traced-node ::trace-start-idx]
-                           (count @trace-atom))))
+          (recur (-> S
+                     (assoc-in [::trace-info traced-node ::trace-start-idx]
+                               (count @trace-atom))
+                     (update-in [::state ::nodes] rest))))
 
         ::trace-end
         (let [traced-node (::node node)
@@ -61,13 +66,54 @@
                      (u/dissoc-in [::trace-info traced-node ::trace-start-idx])
                      (u/dissoc-in [::trace-info traced-node ::called-ats])
                      (assoc-in [::trace-info traced-node ::compiled-node]
-                               (compile node-trace)))))
+                               (compile node-trace))
+                     (update-in [::state ::nodes] rest))))
 
         ;; default
         (do
           (swap! trace-atom conj state)
-          (recur (assoc S ::state (eval-node state)))))
-      state)))
+          (let [node-type (::type node)
+                node-trace-info (get trace-info node-type)
+                compiled-node (::compiled-node node-trace-info)
+                fallback? (::fallback? state)]
+            (cond
+              ;; run compiled
+              (and (some? compiled-node)
+                   (not fallback?))
+              (recur (assoc S ::state (compiled-node state)))
+
+              ;; run interpreted
+              (or fallback?
+                  (not (jit? node-type)))
+              (recur (assoc S ::state (eval-node state)))
+
+              :else
+              (let [called-ats (::called-ats node-trace-info)
+                    curr-millis (u/curr-millis)
+                    two-ms-ago (- curr-millis 2)
+                    calls-in-last-two-ms (filter #(<= two-ms-ago %)
+                                                 called-ats)
+                    new-called-ats (if (seq called-ats)
+                                     (conj calls-in-last-two-ms curr-millis)
+                                     [curr-millis])
+                    times-called-in-last-two-ms (count calls-in-last-two-ms)
+                    should-trace? (and (nil? (::trace-start-idx node-trace-info))
+                                       (>= times-called-in-last-two-ms 5))
+                    nodes (::nodes state)
+                    new-state (if-not should-trace?
+                                (eval-node state)
+                                (assoc state ::nodes
+                                       (u/fastcat [{::type ::trace-start
+                                                    ::node node-type}
+                                                   node
+                                                   {::type ::trace-end
+                                                    ::node node-type}]
+
+                                                  (rest nodes))))]
+                (recur (-> S
+                           (assoc ::state new-state)
+                           (assoc-in [::trace-info node-type ::called-ats] new-called-ats))))))))
+      S)))
 
 
 ;; JIT
@@ -76,31 +122,35 @@
   {::trace? false}
   (fn [state]
     (let [node (-> state ::nodes first)
-          safe? (::safe? state)
+          safe? (::safe? node)
           fallback (::fallback node)]
       (if (safe? state)
-        state
+        (update state ::nodes rest)
         (fallback)))))
 
 (defn make-guard [node safe?]
   (fn [state]
-    (eval-node {::type ::guard
-                ::safe? safe?
-                ::fallback #(assoc
-                             (interpret (assoc state
-                                               ::nodes [node]
-                                               ::fallback? true))
-                             ::interpreted? true)}
-               state)))
+    (let [nodes (cons node (::nodes state))
+          S {::state (assoc state
+                            ::nodes nodes
+                            ::fallback? true)}
+          fallback #(-> (interpret S)
+                        ::state
+                        (assoc ::interpreted? true))
+          guard-node {::type ::guard
+                      ::safe? safe?
+                      ::fallback fallback}]
+      (eval-node (update state ::nodes #(cons guard-node %))))))
 
 (defn compile-node [node state]
   (if (branching? (::type node))
-    (let [check-state (get-check-state-fn node)
+    (let [check-state (get-check-state-fn (::type node))
           bool (check-state state)
           unchanged? #(= bool (check-state %))]
       (make-guard node unchanged?))
 
-    eval-node))
+    (fn [state*]
+      (eval-node (assoc state* ::nodes [node])))))
 
 (defn compile [node-trace]
   (let [trace

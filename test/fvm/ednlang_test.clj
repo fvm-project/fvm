@@ -7,7 +7,7 @@
 ;; Utils
 ;; =====
 (defn run [state]
-  (fvm/interpret {::fvm/state state}))
+  (::fvm/state (fvm/interpret {::fvm/state state})))
 
 (defn apply-op [op stack-in]
   (::ednlang/stack (run {::fvm/nodes [{::fvm/type op}]
@@ -98,12 +98,12 @@
                             {::fvm/type :test/inc}]}))))
 
 (deftest vm-test
-  #_(testing "self tail recursive ops are jitted"
+  (testing "self tail recursive ops are jitted"
     (let [range-script [{::fvm/type ::ednlang/defop
                          ::ednlang/name :test/range
                          ::ednlang/value [{::fvm/type ::ednlang/push
                                            ::ednlang/value 0}
-                                          {::fvm/type :eq?
+                                          {::fvm/type ::ednlang/eq?
                                            ::ednlang/then [{::fvm/type ::ednlang/pop}
                                                            {::fvm/type ::ednlang/pop}]
                                            ::ednlang/else [{::fvm/type ::ednlang/pop}
@@ -115,20 +115,33 @@
                                                            {::fvm/type :test/range}]}]}]
 
           run-interpreted
-          #(run {::fvm/nodes (concat range-script
-                                     [{::fvm/type ::ednlang/push
-                                       ::ednlang/value %}
-                                      {::fvm/type :test/range}])})
+          #(fvm/interpret
+            {::fvm/state {::fvm/nodes (concat range-script
+                                              [{::fvm/type ::ednlang/push
+                                                ::ednlang/value %}
+                                               {::fvm/type :test/range}])}})
 
-          test-interpreted-op #(:stack (run-interpreted %))
+          test-interpreted-op #(-> (run-interpreted %)
+                                   ::fvm/state
+                                   ::ednlang/stack)
           final-state (run-interpreted 100)
-          compiled-op (-> final-state :ops ::ednlang/range :compiled-trace)
+          compiled-op (-> final-state
+                          ::fvm/trace-info
+                          :test/range
+                          ::fvm/compiled-node)
           test-compiled-op (fn [n]
-                             (-> {:stack [n]
-                                  :ops (:ops final-state)}
+                             (-> {::ednlang/stack [n]}
                                  compiled-op
-                                 :stack))]
+                                 ::ednlang/stack))]
+      (testing "meta"
+        (is (true? (-> @fvm/node-opts :test/range ::fvm/jit?)))
+
+        (is (fn? (-> final-state ::fvm/trace-info :test/range ::fvm/compiled-node))))
+
       (testing "correctness"
+        (is (= (range 1 6)
+               (test-interpreted-op 5)))
+
         (is (= (range 1 6)
                (test-compiled-op 5)))
 
@@ -162,14 +175,18 @@
                                                 ::ednlang/value %}
                                                {::fvm/type :test/fact}])})
           final-state (run-fact 100)]
-      (testing "correctness"
-        (is (= (apply *' (range 1 6))
-               (-> (run-fact 5) ::ednlang/stack first)))
-
-        (is (= (apply *' (range 1 201))
-               (-> (run-fact 200) ::ednlang/stack first))))
-
       (testing "meta"
         (is (false? (-> @fvm/node-opts :test/fact ::fvm/jit?)))
 
-        (is (nil? (-> final-state ::fvm/trace-info :test/fact ::fvm/compiled-node)))))))
+        (is (nil? (-> final-state ::fvm/trace-info :test/fact ::fvm/compiled-node))))
+
+      (testing "correctness"
+        (is (= (apply *' (range 1 6))
+               (-> (run-fact 5)
+                   ::ednlang/stack
+                   first)))
+
+        (is (= (apply *' (range 1 201))
+               (-> (run-fact 200)
+                   ::ednlang/stack
+                   first)))))))
