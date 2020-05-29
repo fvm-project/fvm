@@ -23,16 +23,16 @@
               type
               handle))
 
-(defn trace? [type]
+(defn- trace? [type]
   (-> @node-opts type ::trace?))
 
-(defn jit? [type]
+(defn- jit? [type]
   (-> @node-opts type ::jit?))
 
-(defn branching? [type]
+(defn- branching? [type]
   (-> @node-opts type ::branching?))
 
-(defn get-check-state-fn [type]
+(defn- get-check-state-fn [type]
   (-> @node-opts type ::check-state))
 
 
@@ -128,7 +128,7 @@
         (update state ::nodes rest)
         (fallback)))))
 
-(defn make-guard [node safe?]
+(defn- make-guard [node safe?]
   (fn [state]
     (let [nodes (cons node (::nodes state))
           S {::state (assoc state
@@ -142,7 +142,7 @@
                       ::fallback fallback}]
       (eval-node (update state ::nodes #(cons guard-node %))))))
 
-(defn compile-node [node state]
+(defn- compile-node [node state]
   (if (branching? (::type node))
     (let [check-state (get-check-state-fn (::type node))
           bool (check-state state)
@@ -152,7 +152,7 @@
     (fn [state*]
       (eval-node (assoc state* ::nodes [node])))))
 
-(defn compile [node-trace]
+(defn- compile [node-trace]
   (let [trace
         (filter (fn [state]
                   (-> state
