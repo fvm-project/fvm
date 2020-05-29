@@ -132,12 +132,29 @@
                   (fn [[_ & insns]]
                     (u/fastcat body insns)))))))
 
+
+(defn- branching? [insn]
+  (or (::then insn)
+      (::else insn)))
+
+(defn- get-leaves [body]
+  (let [last-insn (last body)]
+    (if (branching? last-insn)
+      (concat (get-leaves (::then last-insn))
+              (get-leaves (::else last-insn)))
+      [last-insn])))
+
+(defn- self-tail-recursive? [op-info]
+  (let [{::keys [name value]} op-info]
+    (some #(= name (::fvm/type %))
+          (get-leaves value))))
+
 (fvm/defnode ::defop {}
   (fn [state]
     (let [insn (-> state ::fvm/nodes first)
           {::keys [name value dont-jit?]} insn
           dont-jit? (or dont-jit?
-                        (not (u/self-tail-recursive? insn)))]
+                        (not (self-tail-recursive? insn)))]
       (fvm/defnode name {::fvm/jit? (not dont-jit?)}
         (fn [state*]
           (update state* ::fvm/nodes
