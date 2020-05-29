@@ -1,6 +1,8 @@
+![Clojure CI](https://github.com/divs1210/fvm/workflows/Clojure%20CI/badge.svg?branch=master)
+
 # fvm
 
-**fvm** is an extensible stack-based self-optimizing VM.
+**fvm** is a Clojure library for writing self-optimizing interpreters.
 
 ## Example
 
