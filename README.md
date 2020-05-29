@@ -1,6 +1,4 @@
-![Clojure CI](https://github.com/divs1210/fvm/workflows/Clojure%20CI/badge.svg?branch=master)
-
-# fvm
+# fvm ![Clojure CI](https://github.com/divs1210/fvm/workflows/Clojure%20CI/badge.svg?branch=master)
 
 **fvm** is a Clojure library for writing self-optimizing interpreters.
 
