@@ -39,7 +39,7 @@ ednlang is meant to showcase all the features of fvm, and is also used to test a
 
 ## Status
 
-This is still under development and considered alpha quality till 1.0 is released. 
+This is considered alpha quality software. Here be dragons.
 
 ## License
 
