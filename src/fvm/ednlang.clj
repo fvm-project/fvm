@@ -1,27 +1,27 @@
 (ns fvm.ednlang
-  (:require [clojure.edn :as edn]
-            [clojure.java.io :as io]
+  (:require [clojure.java.io :as io]
             [fvm.fvm :as fvm]
             [fvm.util :as u]))
 
 ;; Util
 ;; ====
 (defn- next-obj [stream]
-  (edn/read {:eof ::eof}
-            stream))
+  (read {:eof ::eof}
+        stream))
 
 (defn- load-source
   "Load all instructions from an io/reader source (filename or io/resource)."
   [source]
   (try
-    (with-open [r (io/reader source)]
-      (let [stream (java.io.PushbackReader. r)]
-        (loop [insn (next-obj stream)
-               insns []]
-          (if (not= ::eof insn)
-            (recur (next-obj stream)
-                   (conj insns insn))
-            insns))))
+    (binding [*ns* (find-ns 'fvm.ednlang)]
+      (with-open [r (io/reader source)]
+        (let [stream (java.io.PushbackReader. r)]
+          (loop [insn (next-obj stream)
+                 insns []]
+            (if (not= ::eof insn)
+              (recur (next-obj stream)
+                     (conj insns insn))
+              insns)))))
 
     (catch java.io.IOException e
       (printf "Couldn't open '%s': %s\n" source (.getMessage e)))
@@ -53,7 +53,7 @@
 (fvm/defnode ::print {}
   (fn [state]
     (let [[x & rem] (::stack state)]
-      (print x)
+      (print (str x))
       (flush)
       (-> state
           (assoc ::stack rem)
