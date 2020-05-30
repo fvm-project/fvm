@@ -1,4 +1,4 @@
-# fvm
+# fvm [![Clojars Project](https://img.shields.io/clojars/v/fvm-project/fvm.svg)](https://clojars.org/fvm-project/fvm)
 
 **fvm** is a Clojure library for writing self-optimizing interpreters.
 
