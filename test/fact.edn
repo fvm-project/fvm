@@ -1,25 +1,25 @@
-{:fvm.fvm/type :fvm.ednlang/requires
- :fvm.ednlang/value ["lib/std.edn"]}
+{::fvm/type ::requires
+ ::value ["lib/std.edn"]}
 
-{:fvm.fvm/type :fvm.ednlang/defop
- :fvm.ednlang/name :test/fact
- :fvm.ednlang/value [{:fvm.fvm/type :fvm.ednlang/push
-                      :fvm.ednlang/value 0}
-                     {:fvm.fvm/type :fvm.ednlang/eq?
-                      :fvm.ednlang/then [{:fvm.fvm/type :fvm.ednlang/pop}
-                                         {:fvm.fvm/type :fvm.ednlang/pop}
-                                         {:fvm.fvm/type :fvm.ednlang/push
-                                          :fvm.ednlang/value 1}]
-                      :fvm.ednlang/else [{:fvm.fvm/type :fvm.ednlang/pop}
-                                         {:fvm.fvm/type :fvm.ednlang/dup}
-                                         {:fvm.fvm/type :fvm.ednlang/dec}
-                                         {:fvm.fvm/type :test/fact}
-                                         {:fvm.fvm/type :fvm.ednlang/mul}]}]}
+{::fvm/type ::defop
+ ::name :test/fact
+ ::value [{::fvm/type ::push
+           ::value 0}
+          {::fvm/type ::eq?
+           ::then [{::fvm/type ::pop}
+                   {::fvm/type ::pop}
+                   {::fvm/type ::push
+                    ::value 1}]
+           ::else [{::fvm/type ::pop}
+                   {::fvm/type ::dup}
+                   {::fvm/type ::dec}
+                   {::fvm/type :test/fact}
+                   {::fvm/type ::mul}]}]}
 
-{:fvm.fvm/type :fvm.ednlang/push
- :fvm.ednlang/value "Enter a number: "}
-{:fvm.fvm/type :fvm.ednlang/print}
+{::fvm/type ::push
+ ::value "Enter a number: "}
+{::fvm/type ::print}
 
-{:fvm.fvm/type :fvm.ednlang/read}
-{:fvm.fvm/type :test/fact}
-{:fvm.fvm/type :fvm.ednlang/println}
+{::fvm/type ::read}
+{::fvm/type :test/fact}
+{::fvm/type ::println}

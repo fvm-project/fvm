@@ -9,32 +9,32 @@ fvm comes with an example interpreter for a simple stack-based language called *
 Here's a ednlang program that calculates and prints `factorial(5)`:
 ```clojure
 ;; import the standard library
-{:fvm.fvm/type :fvm.ednlang/requires
- :fvm.ednlang/value ["lib/std.edn"]}
+{::fvm/type ::requires
+ ::value ["lib/std.edn"]}
 
 ;; define a new opcode for factorial
-{:fvm.fvm/type :fvm.ednlang/defop
- :fvm.ednlang/name :test/fact
- :fvm.ednlang/value [{:fvm.fvm/type :fvm.ednlang/push
-                      :fvm.ednlang/value 0}
-                     {:fvm.fvm/type :fvm.ednlang/eq?
-                      :fvm.ednlang/then [{:fvm.fvm/type :fvm.ednlang/pop}
-                                         {:fvm.fvm/type :fvm.ednlang/pop}
-                                         {:fvm.fvm/type :fvm.ednlang/push
-                                          :fvm.ednlang/value 1}]
-                      :fvm.ednlang/else [{:fvm.fvm/type :fvm.ednlang/pop}
-                                         {:fvm.fvm/type :fvm.ednlang/dup}
-                                         {:fvm.fvm/type :fvm.ednlang/dec}
-                                         {:fvm.fvm/type :test/fact}
-                                         {:fvm.fvm/type :fvm.ednlang/mul}]}]}
+{::fvm/type ::defop
+ ::name :test/fact
+ ::value [{::fvm/type ::push
+           ::value 0}
+          {::fvm/type ::eq?
+           ::then [{::fvm/type ::pop}
+                   {::fvm/type ::pop}
+                   {::fvm/type ::push
+                    ::value 1}]
+           ::else [{::fvm/type ::pop}
+                   {::fvm/type ::dup}
+                   {::fvm/type ::dec}
+                   {::fvm/type :test/fact}
+                   {::fvm/type ::mul}]}]}
 
 ;; call it
-{:fvm.fvm/type :fvm.ednlang/push
- :fvm.ednlang/value 5}
-{:fvm.fvm/type :test/fact}
+{::fvm/type ::push
+ ::value 5}
+{::fvm/type :test/fact}
 
 ;; print the result
-{:fvm.fvm/type :fvm.ednlang/println}
+{::fvm/type ::println}
 ```
 
 ## Usage
