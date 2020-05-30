@@ -18,7 +18,9 @@ As an example, Clojure's `def` could be implemented in the following manner:
     (let [def-node (-> state ::fvm/nodes first)
           curr-ns (or (::curr-ns state) 'user)
           {::keys [name value]} def-node]
-      (assoc-in state [curr-ns ::vars name] value))))
+      (-> state
+          (assoc-in [curr-ns ::vars name] value)
+          (update [::fvm/nodes] rest)))))
 ```
 
 assuming that your parser had parsed the expression `(def a 1)` as:
