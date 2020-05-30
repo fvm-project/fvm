@@ -13,14 +13,15 @@
   "Load all instructions from an io/reader source (filename or io/resource)."
   [source]
   (try
-    (with-open [r (io/reader source)]
-      (let [stream (java.io.PushbackReader. r)]
-        (loop [insn (next-obj stream)
-               insns []]
-          (if (not= ::eof insn)
-            (recur (next-obj stream)
-                   (conj insns insn))
-            insns))))
+    (binding [*ns* (find-ns 'fvm.ednlang)]
+      (with-open [r (io/reader source)]
+        (let [stream (java.io.PushbackReader. r)]
+          (loop [insn (next-obj stream)
+                 insns []]
+            (if (not= ::eof insn)
+              (recur (next-obj stream)
+                     (conj insns insn))
+              insns)))))
 
     (catch java.io.IOException e
       (printf "Couldn't open '%s': %s\n" source (.getMessage e)))
