@@ -1,5 +1,0 @@
-{::fvm/type ::defop
- ::name :test/inc
- ::value [{::fvm/type ::push
-           ::value 1}
-          {::fvm/type ::add}]}
