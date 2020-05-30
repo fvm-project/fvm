@@ -1,4 +1,4 @@
-(ns fvm.fvm
+(ns fvm.core
   (:refer-clojure :exclude [compile])
   (:require [fvm.util :as u]))
 
