@@ -1,29 +1,29 @@
 ;; Math
 ;; ====
-{:fvm.fvm/type :fvm.ednlang/defop
- :fvm.ednlang/name :fvm.ednlang/inc
- :fvm.ednlang/value [{:fvm.fvm/type :fvm.ednlang/push
-                      :fvm.ednlang/value 1}
-                     {:fvm.fvm/type :fvm.ednlang/add}]}
+{::fvm/type ::defop
+ ::name ::inc
+ ::value [{::fvm/type ::push
+           ::value 1}
+          {::fvm/type ::add}]}
 
-{:fvm.fvm/type :fvm.ednlang/defop
- :fvm.ednlang/name :fvm.ednlang/dec
- :fvm.ednlang/value [{:fvm.fvm/type :fvm.ednlang/push
-                      :fvm.ednlang/value 1}
-                     {:fvm.fvm/type :fvm.ednlang/swap}
-                     {:fvm.fvm/type :fvm.ednlang/sub}]}
+{::fvm/type ::defop
+ ::name ::dec
+ ::value [{::fvm/type ::push
+           ::value 1}
+          {::fvm/type ::swap}
+          {::fvm/type ::sub}]}
 
-{:fvm.fvm/type :fvm.ednlang/defop
- :fvm.ednlang/name :fvm.ednlang/neg
- :fvm.ednlang/value [{:fvm.fvm/type :fvm.ednlang/push
-                      :fvm.ednlang/value 0}
-                     {:fvm.fvm/type :fvm.ednlang/sub}]}
+{::fvm/type ::defop
+ ::name ::neg
+ ::value [{::fvm/type ::push
+           ::value 0}
+          {::fvm/type ::sub}]}
 
 ;; IO
 ;; ==
-{:fvm.fvm/type :fvm.ednlang/defop
- :fvm.ednlang/name :fvm.ednlang/println
- :fvm.ednlang/value [{:fvm.fvm/type :fvm.ednlang/print}
-                     {:fvm.fvm/type :fvm.ednlang/push
-                      :fvm.ednlang/value "\n"}
-                     {:fvm.fvm/type :fvm.ednlang/print}]}
+{::fvm/type ::defop
+ ::name ::println
+ ::value [{::fvm/type ::print}
+          {::fvm/type ::push
+           ::value "\n"}
+          {::fvm/type ::print}]}
