@@ -1,92 +1,42 @@
-# fvm ![Clojure CI](https://github.com/divs1210/fvm/workflows/Clojure%20CI/badge.svg?branch=master)
+# fvm
 
 **fvm** is a Clojure library for writing self-optimizing interpreters.
 
-## Example
+## How it works
 
-fvm comes with an example interpreter for a simple stack-based language called **ednlang**.
+fvm provides a function called `defnode` for defining AST nodes with the following signature:
 
-Here's a ednlang program that calculates and prints `factorial(5)`:
 ```clojure
-;; import the standard library
-{::fvm/type ::requires
- ::value ["lib/std.edn"]}
-
-;; define a new opcode for factorial
-{::fvm/type ::defop
- ::name :test/fact
- ::value [{::fvm/type ::push
-           ::value 0}
-          {::fvm/type ::eq?
-           ::then [{::fvm/type ::pop}
-                   {::fvm/type ::pop}
-                   {::fvm/type ::push
-                    ::value 1}]
-           ::else [{::fvm/type ::pop}
-                   {::fvm/type ::dup}
-                   {::fvm/type ::dec}
-                   {::fvm/type :test/fact}
-                   {::fvm/type ::mul}]}]}
-
-;; call it
-{::fvm/type ::push
- ::value 5}
-{::fvm/type :test/fact}
-
-;; print the result
-{::fvm/type ::println}
+(fvm/defnode <node-type> <opts> <handler-fn>)
 ```
 
-## Usage
+As an example, Clojure's `def` could be implemented in the following manner:
 
-### JVM
-
-To run the example factorial program, do:
-```
-$ lein run test/fact.edn
-```
-
-### Native
-
-#### Build from source
-
-Make sure you have GraalVM installed and `$GRAALVM_HOME` pointing to it, then do:
-```
-$ ./compile
+```clojure
+(fvm/defnode ::def {}
+  (fn [state]
+    (let [def-node (-> state ::fvm/nodes first)
+          {::keys [name value]} def-node]
+      (assoc-in state [:vars name] value))))
 ```
 
-#### Run
+assuming that your parser had parsed the expression `(def a 1)` as:
 
-Now you can do:
-```
-$ target/fvm test/fact.edn
-```
-
-## Tests
-
-```
-$ lein eftest
+```clojure
+{::fvm/type ::def
+ ::name 'a
+ ::value 1}
 ```
 
-## Properties
+## Examples
 
-### fvm
+[ednlang]() is a simple stack-based concatenative language implemented using fvm.
 
-- A pure Clojure library for writing JITing VMs (like RPython and Truffle/GraalVM)
-- Simple, functional interface
-- Hot loops are traced and inlined at runtime
-
-### ednlang
-
-- Simple stack-based language implemented on top of fvm
-- Custom ops (like `fact` above) are inlined and called at runtime
-- No recursion limit - try running the factorial program for large values
-- Code is data is code - anonymous ops can be stored and called
-- Does not require a GC, being completely stack based
+ednlang is meant to showcase all the features of fvm, and is also used to test and profile fvm.
 
 ## Status
 
-This is a research project with rough edges - here be dragons.
+This is still under development and considered alpha quality till 1.0 is released. 
 
 ## License
 
