@@ -53,7 +53,7 @@
 (fvm/defnode ::print {}
   (fn [state]
     (let [[x & rem] (::stack state)]
-      (print x)
+      (print (str x))
       (flush)
       (-> state
           (assoc ::stack rem)
