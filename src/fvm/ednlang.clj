@@ -1,14 +1,13 @@
 (ns fvm.ednlang
-  (:require [clojure.edn :as edn]
-            [clojure.java.io :as io]
+  (:require [clojure.java.io :as io]
             [fvm.fvm :as fvm]
             [fvm.util :as u]))
 
 ;; Util
 ;; ====
 (defn- next-obj [stream]
-  (edn/read {:eof ::eof}
-            stream))
+  (read {:eof ::eof}
+        stream))
 
 (defn- load-source
   "Load all instructions from an io/reader source (filename or io/resource)."
