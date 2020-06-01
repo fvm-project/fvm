@@ -37,6 +37,8 @@ assuming that your parser had parsed the expression `(def a 1)` into the fvm nod
 
 ednlang is meant to showcase all the features of fvm, and is also used to test and profile fvm.
 
+Work is ongoing to implement a lisp on top of fvm.
+
 ## Status
 
 This is **EXPERIMENTAL** software. Here be dragons.
