@@ -4,7 +4,7 @@
 
 ## How it works
 
-fvm provides a function called `defnode` for defining AST nodes with the following signature:
+fvm provides a function called `defnode` for defining instruction nodes with the following signature:
 
 ```clojure
 (fvm/defnode <node-type> <opts> <handler-fn>)
