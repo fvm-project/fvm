@@ -11,7 +11,7 @@ fvm provides a function called `defnode` for defining instruction nodes with the
 ```
 
 - any node with the option `{::fvm/jit? true}` is considered a loop
-- if such a node is executed frequently enough, it's next execution is put in "trace-mode"
+- if such a node is executed frequently enough, its next execution is put in "trace-mode"
 - in trace-mode, all the sub-nodes executed are logged in a "trace"
 - the trace is effectively an unrolled version of the loop with function calls inlined 
 - once the node finishes executing, this trace is "compiled" into a Clojure function
