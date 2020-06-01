@@ -10,26 +10,12 @@ fvm provides a function called `defnode` for defining instruction nodes with the
 (fvm/defnode <node-type> <opts> <handler-fn>)
 ```
 
-As an example, Clojure's `def` could be implemented in the following manner:
-
-```clojure
-(fvm/defnode ::def {}
-  (fn [state]
-    (let [def-node (-> state ::fvm/nodes first)
-          curr-ns (or (::curr-ns state) 'user)
-          {::keys [name value]} def-node]
-      (-> state
-          (assoc-in [curr-ns ::vars name] value)
-          (update ::fvm/nodes rest)))))
-```
-
-assuming that your parser had parsed the expression `(def a 1)` into the fvm node:
-
-```clojure
-{::fvm/type ::def
- ::name 'a
- ::value 1}
-```
+- any node with the option `{::fvm/jit? true}` is considered a loop
+- if such a node is executed frequently enough, it's next execution is put in "trace-mode"
+- in trace-mode, all the sub-nodes executed are logged in a "trace"
+- the trace is effectively an unrolled version of the loop with function calls inlined 
+- once the node finishes executing, this trace is "compiled" into a Clojure function
+- the compiled version is used on future executions of this node
 
 ## Examples
 
