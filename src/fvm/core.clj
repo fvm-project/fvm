@@ -46,7 +46,7 @@
 (declare compile)
 
 (defn interpret
-  [{::keys [state trace-atom trace-info] :as S}]
+  [{::keys [state trace-atom trace-info compiled-nodes] :as S}]
   (let [trace-atom (or trace-atom (atom []))
         S (assoc S ::trace-atom trace-atom)]
     (if-let [[node] (-> state ::nodes seq)]
@@ -63,10 +63,9 @@
               start-idx (-> trace-info traced-node ::trace-start-idx)
               node-trace (drop start-idx @trace-atom)]
           (recur (-> S
+                     (assoc ::compiled-nodes (compile node-trace compiled-nodes))
                      (u/dissoc-in [::trace-info traced-node ::trace-start-idx])
                      (u/dissoc-in [::trace-info traced-node ::called-ats])
-                     (assoc-in [::trace-info traced-node ::compiled-node]
-                               (compile node-trace))
                      (update-in [::state ::nodes] rest))))
 
         ;; default
@@ -74,7 +73,7 @@
           (swap! trace-atom conj state)
           (let [node-type (::type node)
                 node-trace-info (get trace-info node-type)
-                compiled-node (::compiled-node node-trace-info)
+                compiled-node (get compiled-nodes node-type)
                 fallback? (::fallback? state)]
             (cond
               ;; run compiled
@@ -142,17 +141,24 @@
                       ::fallback fallback}]
       (eval-node (update state ::nodes #(cons guard-node %))))))
 
-(defn- compile-node [node state]
-  (if (branching? (::type node))
+(defn- compile-node [node state compiled-nodes]
+  (cond
+    (branching? (::type node))
     (let [check-state (get-check-state-fn (::type node))
           bool (check-state state)
           unchanged? #(= bool (check-state %))]
       (make-guard node unchanged?))
 
+    (contains? compiled-nodes (::type node))
+    (let [compiled-node (compiled-nodes (::type node))]
+      (fn [state*]
+        (compiled-node state*)))
+
+    :else
     (fn [state*]
       (eval-node (assoc state* ::nodes [node])))))
 
-(defn- compile [node-trace]
+(defn- compile [node-trace compiled-nodes]
   (let [trace
         (filter (fn [state]
                   (-> state
@@ -162,17 +168,18 @@
                       trace?))
                 node-trace)
 
-        compiled-nodes
+        sub-nodes
         (map-indexed (fn [idx {::keys [nodes]}]
                        (compile-node (first nodes)
                                      (->> trace
                                           (drop (inc idx))
-                                          first)))
+                                          first)
+                                     compiled-nodes))
                      trace)]
     (fn [init-state]
-      (reduce (fn [state compiled-node]
+      (reduce (fn [state sub-node]
                 (if (::interpreted? state)
                   (reduced (dissoc state ::interpreted?))
-                  (compiled-node state)))
+                  (sub-node state)))
               init-state
-              compiled-nodes))))
+              sub-nodes))))
